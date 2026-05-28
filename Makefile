@@ -4,7 +4,7 @@ $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.59.1
+GOLANGCI_LINT_VERSION ?= v2.12.2
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 define go-install-tool
