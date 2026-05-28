@@ -14,9 +14,10 @@ func (id CardID) String() string {
 	return string(id)
 }
 
-// Card represents a flashcard with a hint and content.
+// Card represents a flashcard with question, hint, and content.
 type Card struct {
 	id        CardID
+	question  string
 	hint      string
 	content   string
 	creator   UserID
@@ -24,12 +25,13 @@ type Card struct {
 	updatedAt time.Time
 }
 
-// NewCard creates a new Card with the given hint, content and creator.
+// NewCard creates a new Card with the given question, hint, content and creator.
 // It auto-generates a UUID for the id and initializes createdAt and updatedAt.
-func NewCard(hint string, content string, creator UserID) *Card {
+func NewCard(question string, hint string, content string, creator UserID) *Card {
 	now := time.Now()
 	return &Card{
 		id:        CardID(uuid.New().String()),
+		question:  question,
 		hint:      hint,
 		content:   content,
 		creator:   creator,
@@ -43,7 +45,12 @@ func (c *Card) ID() CardID {
 	return c.id
 }
 
-// Hint returns the card's hint or prompt.
+// Question returns the card's question or prompt.
+func (c *Card) Question() string {
+	return c.question
+}
+
+// Hint returns the card's hint.
 func (c *Card) Hint() string {
 	return c.hint
 }
@@ -66,6 +73,12 @@ func (c *Card) CreatedAt() time.Time {
 // UpdatedAt returns the timestamp when the card was last modified.
 func (c *Card) UpdatedAt() time.Time {
 	return c.updatedAt
+}
+
+// SetQuestion updates the card's question and sets updatedAt to the current time.
+func (c *Card) SetQuestion(question string) {
+	c.question = question
+	c.updatedAt = time.Now()
 }
 
 // SetHint updates the card's hint and sets updatedAt to the current time.

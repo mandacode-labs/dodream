@@ -18,6 +18,8 @@ type Card struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// Question holds the value of the "question" field.
+	Question string `json:"question,omitempty"`
 	// Hint holds the value of the "hint" field.
 	Hint string `json:"hint,omitempty"`
 	// Content holds the value of the "content" field.
@@ -91,7 +93,7 @@ func (*Card) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case card.FieldID, card.FieldHint, card.FieldContent:
+		case card.FieldID, card.FieldQuestion, card.FieldHint, card.FieldContent:
 			values[i] = new(sql.NullString)
 		case card.FieldCreatedAt, card.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -117,6 +119,12 @@ func (_m *Card) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case card.FieldQuestion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field question", values[i])
+			} else if value.Valid {
+				_m.Question = value.String
 			}
 		case card.FieldHint:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -205,6 +213,9 @@ func (_m *Card) String() string {
 	var builder strings.Builder
 	builder.WriteString("Card(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("question=")
+	builder.WriteString(_m.Question)
+	builder.WriteString(", ")
 	builder.WriteString("hint=")
 	builder.WriteString(_m.Hint)
 	builder.WriteString(", ")

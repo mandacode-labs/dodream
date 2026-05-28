@@ -32,6 +32,20 @@ func (_u *CardUpdate) Where(ps ...predicate.Card) *CardUpdate {
 	return _u
 }
 
+// SetQuestion sets the "question" field.
+func (_u *CardUpdate) SetQuestion(v string) *CardUpdate {
+	_u.mutation.SetQuestion(v)
+	return _u
+}
+
+// SetNillableQuestion sets the "question" field if the given value is not nil.
+func (_u *CardUpdate) SetNillableQuestion(v *string) *CardUpdate {
+	if v != nil {
+		_u.SetQuestion(*v)
+	}
+	return _u
+}
+
 // SetHint sets the "hint" field.
 func (_u *CardUpdate) SetHint(v string) *CardUpdate {
 	_u.mutation.SetHint(v)
@@ -240,6 +254,11 @@ func (_u *CardUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *CardUpdate) check() error {
+	if v, ok := _u.mutation.Question(); ok {
+		if err := card.QuestionValidator(v); err != nil {
+			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "Card.question": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Content(); ok {
 		if err := card.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Card.content": %w`, err)}
@@ -262,6 +281,9 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Question(); ok {
+		_spec.SetField(card.FieldQuestion, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Hint(); ok {
 		_spec.SetField(card.FieldHint, field.TypeString, value)
@@ -457,6 +479,20 @@ type CardUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CardMutation
+}
+
+// SetQuestion sets the "question" field.
+func (_u *CardUpdateOne) SetQuestion(v string) *CardUpdateOne {
+	_u.mutation.SetQuestion(v)
+	return _u
+}
+
+// SetNillableQuestion sets the "question" field if the given value is not nil.
+func (_u *CardUpdateOne) SetNillableQuestion(v *string) *CardUpdateOne {
+	if v != nil {
+		_u.SetQuestion(*v)
+	}
+	return _u
 }
 
 // SetHint sets the "hint" field.
@@ -680,6 +716,11 @@ func (_u *CardUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *CardUpdateOne) check() error {
+	if v, ok := _u.mutation.Question(); ok {
+		if err := card.QuestionValidator(v); err != nil {
+			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "Card.question": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Content(); ok {
 		if err := card.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Card.content": %w`, err)}
@@ -719,6 +760,9 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Question(); ok {
+		_spec.SetField(card.FieldQuestion, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Hint(); ok {
 		_spec.SetField(card.FieldHint, field.TypeString, value)

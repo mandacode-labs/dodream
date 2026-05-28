@@ -14,6 +14,8 @@ const (
 	Label = "card"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldQuestion holds the string denoting the question field in the database.
+	FieldQuestion = "question"
 	// FieldHint holds the string denoting the hint field in the database.
 	FieldHint = "hint"
 	// FieldContent holds the string denoting the content field in the database.
@@ -63,6 +65,7 @@ const (
 // Columns holds all SQL columns for card fields.
 var Columns = []string{
 	FieldID,
+	FieldQuestion,
 	FieldHint,
 	FieldContent,
 	FieldCreatedAt,
@@ -97,6 +100,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// QuestionValidator is a validator for the "question" field. It is called by the builders before save.
+	QuestionValidator func(string) error
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -113,6 +118,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByQuestion orders the results by the question field.
+func ByQuestion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuestion, opts...).ToFunc()
 }
 
 // ByHint orders the results by the hint field.

@@ -24,6 +24,12 @@ type CardCreate struct {
 	hooks    []Hook
 }
 
+// SetQuestion sets the "question" field.
+func (_c *CardCreate) SetQuestion(v string) *CardCreate {
+	_c.mutation.SetQuestion(v)
+	return _c
+}
+
 // SetHint sets the "hint" field.
 func (_c *CardCreate) SetHint(v string) *CardCreate {
 	_c.mutation.SetHint(v)
@@ -181,6 +187,14 @@ func (_c *CardCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CardCreate) check() error {
+	if _, ok := _c.mutation.Question(); !ok {
+		return &ValidationError{Name: "question", err: errors.New(`ent: missing required field "Card.question"`)}
+	}
+	if v, ok := _c.mutation.Question(); ok {
+		if err := card.QuestionValidator(v); err != nil {
+			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "Card.question": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Card.content"`)}
 	}
@@ -232,6 +246,10 @@ func (_c *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.Question(); ok {
+		_spec.SetField(card.FieldQuestion, field.TypeString, value)
+		_node.Question = value
 	}
 	if value, ok := _c.mutation.Hint(); ok {
 		_spec.SetField(card.FieldHint, field.TypeString, value)

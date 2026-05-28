@@ -65,6 +65,11 @@ func IDContainsFold(id string) predicate.Card {
 	return predicate.Card(sql.FieldContainsFold(FieldID, id))
 }
 
+// Question applies equality check predicate on the "question" field. It's identical to QuestionEQ.
+func Question(v string) predicate.Card {
+	return predicate.Card(sql.FieldEQ(FieldQuestion, v))
+}
+
 // Hint applies equality check predicate on the "hint" field. It's identical to HintEQ.
 func Hint(v string) predicate.Card {
 	return predicate.Card(sql.FieldEQ(FieldHint, v))
@@ -83,6 +88,71 @@ func CreatedAt(v time.Time) predicate.Card {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Card {
 	return predicate.Card(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// QuestionEQ applies the EQ predicate on the "question" field.
+func QuestionEQ(v string) predicate.Card {
+	return predicate.Card(sql.FieldEQ(FieldQuestion, v))
+}
+
+// QuestionNEQ applies the NEQ predicate on the "question" field.
+func QuestionNEQ(v string) predicate.Card {
+	return predicate.Card(sql.FieldNEQ(FieldQuestion, v))
+}
+
+// QuestionIn applies the In predicate on the "question" field.
+func QuestionIn(vs ...string) predicate.Card {
+	return predicate.Card(sql.FieldIn(FieldQuestion, vs...))
+}
+
+// QuestionNotIn applies the NotIn predicate on the "question" field.
+func QuestionNotIn(vs ...string) predicate.Card {
+	return predicate.Card(sql.FieldNotIn(FieldQuestion, vs...))
+}
+
+// QuestionGT applies the GT predicate on the "question" field.
+func QuestionGT(v string) predicate.Card {
+	return predicate.Card(sql.FieldGT(FieldQuestion, v))
+}
+
+// QuestionGTE applies the GTE predicate on the "question" field.
+func QuestionGTE(v string) predicate.Card {
+	return predicate.Card(sql.FieldGTE(FieldQuestion, v))
+}
+
+// QuestionLT applies the LT predicate on the "question" field.
+func QuestionLT(v string) predicate.Card {
+	return predicate.Card(sql.FieldLT(FieldQuestion, v))
+}
+
+// QuestionLTE applies the LTE predicate on the "question" field.
+func QuestionLTE(v string) predicate.Card {
+	return predicate.Card(sql.FieldLTE(FieldQuestion, v))
+}
+
+// QuestionContains applies the Contains predicate on the "question" field.
+func QuestionContains(v string) predicate.Card {
+	return predicate.Card(sql.FieldContains(FieldQuestion, v))
+}
+
+// QuestionHasPrefix applies the HasPrefix predicate on the "question" field.
+func QuestionHasPrefix(v string) predicate.Card {
+	return predicate.Card(sql.FieldHasPrefix(FieldQuestion, v))
+}
+
+// QuestionHasSuffix applies the HasSuffix predicate on the "question" field.
+func QuestionHasSuffix(v string) predicate.Card {
+	return predicate.Card(sql.FieldHasSuffix(FieldQuestion, v))
+}
+
+// QuestionEqualFold applies the EqualFold predicate on the "question" field.
+func QuestionEqualFold(v string) predicate.Card {
+	return predicate.Card(sql.FieldEqualFold(FieldQuestion, v))
+}
+
+// QuestionContainsFold applies the ContainsFold predicate on the "question" field.
+func QuestionContainsFold(v string) predicate.Card {
+	return predicate.Card(sql.FieldContainsFold(FieldQuestion, v))
 }
 
 // HintEQ applies the EQ predicate on the "hint" field.

@@ -4,11 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/mandacode-labs/dodream/ent"
 	"github.com/mandacode-labs/dodream/ent/card"
 	"github.com/mandacode-labs/dodream/ent/deck"
 	"github.com/mandacode-labs/dodream/internal/core"
 )
+
+// sanitizeMarkdown removes potentially dangerous HTML from markdown content
+// while preserving safe markdown formatting.
+func sanitizeMarkdown(input string) string {
+	p := bluemonday.UGCPolicy()
+	return p.Sanitize(input)
+}
 
 // CardStore provides database operations for cards.
 type CardStore struct {
@@ -24,14 +32,16 @@ func NewCardStore(client *ent.Client) *CardStore {
 func (s *CardStore) Create(ctx context.Context, c *core.Card) (*core.Card, error) {
 	created, err := s.client.Card.Create().
 		SetID(c.ID().String()).
-		SetHint(c.Hint()).
-		SetContent(c.Content()).
+		SetQuestion(sanitizeMarkdown(c.Question())).
+		SetHint(sanitizeMarkdown(c.Hint())).
+		SetContent(sanitizeMarkdown(c.Content())).
 		SetCreatorID(c.Creator().String()).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("create card: %w", err)
 	}
 	return core.NewCard(
+		created.Question,
 		created.Hint,
 		created.Content,
 		c.Creator(),
@@ -48,6 +58,7 @@ func (s *CardStore) GetByID(ctx context.Context, id core.CardID) (*core.Card, er
 		return nil, fmt.Errorf("get card by id: %w", err)
 	}
 	return core.NewCard(
+		c.Question,
 		c.Hint,
 		c.Content,
 		core.UserID(c.Edges.Creator.ID),
@@ -57,13 +68,15 @@ func (s *CardStore) GetByID(ctx context.Context, id core.CardID) (*core.Card, er
 // Update modifies an existing card.
 func (s *CardStore) Update(ctx context.Context, c *core.Card) (*core.Card, error) {
 	updated, err := s.client.Card.UpdateOneID(c.ID().String()).
-		SetHint(c.Hint()).
-		SetContent(c.Content()).
+		SetQuestion(sanitizeMarkdown(c.Question())).
+		SetHint(sanitizeMarkdown(c.Hint())).
+		SetContent(sanitizeMarkdown(c.Content())).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("update card: %w", err)
 	}
 	return core.NewCard(
+		updated.Question,
 		updated.Hint,
 		updated.Content,
 		c.Creator(),
@@ -89,6 +102,7 @@ func (s *CardStore) List(ctx context.Context) ([]*core.Card, error) {
 	result := make([]*core.Card, len(cards))
 	for i, c := range cards {
 		result[i] = core.NewCard(
+			c.Question,
 			c.Hint,
 			c.Content,
 			core.UserID(c.Edges.Creator.ID),
@@ -132,6 +146,7 @@ func (s *CardStore) ListByDeck(ctx context.Context, deckID core.DeckID) ([]*core
 	result := make([]*core.Card, len(cards))
 	for i, c := range cards {
 		result[i] = core.NewCard(
+			c.Question,
 			c.Hint,
 			c.Content,
 			core.UserID(c.Edges.Creator.ID),

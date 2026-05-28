@@ -21,9 +21,10 @@ func NewHandler(service *cardservice.Service) *Handler {
 
 // CreateRequest represents the request body for creating a card.
 type CreateRequest struct {
-	Hint    string `json:"hint"`
-	Content string `json:"content" binding:"required"`
-	Creator string `json:"creator" binding:"required"`
+	Question string `json:"question" binding:"required"`
+	Hint     string `json:"hint"`
+	Content  string `json:"content" binding:"required"`
+	Creator  string `json:"creator" binding:"required"`
 }
 
 // Create handles POST /cards.
@@ -34,7 +35,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	card, err := h.service.Create(c.Request.Context(), req.Hint, req.Content, core.UserID(req.Creator))
+	card, err := h.service.Create(c.Request.Context(), req.Question, req.Hint, req.Content, core.UserID(req.Creator))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

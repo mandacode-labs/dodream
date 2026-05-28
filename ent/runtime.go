@@ -20,16 +20,20 @@ import (
 func init() {
 	cardFields := schema.Card{}.Fields()
 	_ = cardFields
+	// cardDescQuestion is the schema descriptor for question field.
+	cardDescQuestion := cardFields[1].Descriptor()
+	// card.QuestionValidator is a validator for the "question" field. It is called by the builders before save.
+	card.QuestionValidator = cardDescQuestion.Validators[0].(func(string) error)
 	// cardDescContent is the schema descriptor for content field.
-	cardDescContent := cardFields[2].Descriptor()
+	cardDescContent := cardFields[3].Descriptor()
 	// card.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	card.ContentValidator = cardDescContent.Validators[0].(func(string) error)
 	// cardDescCreatedAt is the schema descriptor for created_at field.
-	cardDescCreatedAt := cardFields[3].Descriptor()
+	cardDescCreatedAt := cardFields[4].Descriptor()
 	// card.DefaultCreatedAt holds the default value on creation for the created_at field.
 	card.DefaultCreatedAt = cardDescCreatedAt.Default.(func() time.Time)
 	// cardDescUpdatedAt is the schema descriptor for updated_at field.
-	cardDescUpdatedAt := cardFields[4].Descriptor()
+	cardDescUpdatedAt := cardFields[5].Descriptor()
 	// card.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	card.DefaultUpdatedAt = cardDescUpdatedAt.Default.(func() time.Time)
 	// card.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

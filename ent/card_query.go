@@ -408,12 +408,12 @@ func (_q *CardQuery) WithStudyEvents(opts ...func(*StudyEventQuery)) *CardQuery 
 // Example:
 //
 //	var v []struct {
-//		Hint string `json:"hint,omitempty"`
+//		Question string `json:"question,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Card.Query().
-//		GroupBy(card.FieldHint).
+//		GroupBy(card.FieldQuestion).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *CardQuery) GroupBy(field string, fields ...string) *CardGroupBy {
@@ -431,11 +431,11 @@ func (_q *CardQuery) GroupBy(field string, fields ...string) *CardGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Hint string `json:"hint,omitempty"`
+//		Question string `json:"question,omitempty"`
 //	}
 //
 //	client.Card.Query().
-//		Select(card.FieldHint).
+//		Select(card.FieldQuestion).
 //		Scan(ctx, &v)
 func (_q *CardQuery) Select(fields ...string) *CardSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

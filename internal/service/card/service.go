@@ -18,8 +18,8 @@ func NewService(store *store.CardStore) *Service {
 }
 
 // Create creates a new card.
-func (s *Service) Create(ctx context.Context, hint string, content string, creator core.UserID) (*core.Card, error) {
-	card := core.NewCard(hint, content, creator)
+func (s *Service) Create(ctx context.Context, question string, hint string, content string, creator core.UserID) (*core.Card, error) {
+	card := core.NewCard(question, hint, content, creator)
 	return s.store.Create(ctx, card)
 }
 
