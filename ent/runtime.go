@@ -20,10 +20,6 @@ import (
 func init() {
 	cardFields := schema.Card{}.Fields()
 	_ = cardFields
-	// cardDescQuestion is the schema descriptor for question field.
-	cardDescQuestion := cardFields[1].Descriptor()
-	// card.QuestionValidator is a validator for the "question" field. It is called by the builders before save.
-	card.QuestionValidator = cardDescQuestion.Validators[0].(func(string) error)
 	// cardDescContent is the schema descriptor for content field.
 	cardDescContent := cardFields[3].Descriptor()
 	// card.ContentValidator is a validator for the "content" field. It is called by the builders before save.

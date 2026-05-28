@@ -30,6 +30,14 @@ func (_c *CardCreate) SetQuestion(v string) *CardCreate {
 	return _c
 }
 
+// SetNillableQuestion sets the "question" field if the given value is not nil.
+func (_c *CardCreate) SetNillableQuestion(v *string) *CardCreate {
+	if v != nil {
+		_c.SetQuestion(*v)
+	}
+	return _c
+}
+
 // SetHint sets the "hint" field.
 func (_c *CardCreate) SetHint(v string) *CardCreate {
 	_c.mutation.SetHint(v)
@@ -187,14 +195,6 @@ func (_c *CardCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CardCreate) check() error {
-	if _, ok := _c.mutation.Question(); !ok {
-		return &ValidationError{Name: "question", err: errors.New(`ent: missing required field "Card.question"`)}
-	}
-	if v, ok := _c.mutation.Question(); ok {
-		if err := card.QuestionValidator(v); err != nil {
-			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "Card.question": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Card.content"`)}
 	}

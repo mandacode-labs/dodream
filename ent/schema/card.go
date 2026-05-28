@@ -17,7 +17,7 @@ type Card struct {
 func (Card) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").Unique().Immutable(),
-		field.Text("question").NotEmpty(),
+		field.Text("question").Optional(),
 		field.Text("hint").Optional(),
 		field.Text("content").NotEmpty(),
 		field.Time("created_at").Default(time.Now).Immutable(),

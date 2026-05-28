@@ -145,6 +145,16 @@ func QuestionHasSuffix(v string) predicate.Card {
 	return predicate.Card(sql.FieldHasSuffix(FieldQuestion, v))
 }
 
+// QuestionIsNil applies the IsNil predicate on the "question" field.
+func QuestionIsNil() predicate.Card {
+	return predicate.Card(sql.FieldIsNull(FieldQuestion))
+}
+
+// QuestionNotNil applies the NotNil predicate on the "question" field.
+func QuestionNotNil() predicate.Card {
+	return predicate.Card(sql.FieldNotNull(FieldQuestion))
+}
+
 // QuestionEqualFold applies the EqualFold predicate on the "question" field.
 func QuestionEqualFold(v string) predicate.Card {
 	return predicate.Card(sql.FieldEqualFold(FieldQuestion, v))

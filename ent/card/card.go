@@ -100,8 +100,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// QuestionValidator is a validator for the "question" field. It is called by the builders before save.
-	QuestionValidator func(string) error
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

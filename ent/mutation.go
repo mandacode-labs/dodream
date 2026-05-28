@@ -200,9 +200,22 @@ func (m *CardMutation) OldQuestion(ctx context.Context) (v string, err error) {
 	return oldValue.Question, nil
 }
 
+// ClearQuestion clears the value of the "question" field.
+func (m *CardMutation) ClearQuestion() {
+	m.question = nil
+	m.clearedFields[card.FieldQuestion] = struct{}{}
+}
+
+// QuestionCleared returns if the "question" field was cleared in this mutation.
+func (m *CardMutation) QuestionCleared() bool {
+	_, ok := m.clearedFields[card.FieldQuestion]
+	return ok
+}
+
 // ResetQuestion resets all changes to the "question" field.
 func (m *CardMutation) ResetQuestion() {
 	m.question = nil
+	delete(m.clearedFields, card.FieldQuestion)
 }
 
 // SetHint sets the "hint" field.
@@ -724,6 +737,9 @@ func (m *CardMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *CardMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(card.FieldQuestion) {
+		fields = append(fields, card.FieldQuestion)
+	}
 	if m.FieldCleared(card.FieldHint) {
 		fields = append(fields, card.FieldHint)
 	}
@@ -741,6 +757,9 @@ func (m *CardMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *CardMutation) ClearField(name string) error {
 	switch name {
+	case card.FieldQuestion:
+		m.ClearQuestion()
+		return nil
 	case card.FieldHint:
 		m.ClearHint()
 		return nil
