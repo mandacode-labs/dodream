@@ -47,8 +47,20 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
+  hadolint:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: Dockerfile
+          config: .hadolint.yaml
+
   lint:
     name: Lint
+    needs: [fmt-check, vet]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -63,7 +75,7 @@ jobs:
 
   unit-test:
     name: Unit Tests
-    needs: [vet, lint]
+    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -83,7 +95,7 @@ jobs:
 
   build:
     name: Build
-    needs: [fmt-check, vet, lint, unit-test]
+    needs: [unit-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -97,7 +109,7 @@ jobs:
 
   docker-build:
     name: Docker Build
-    needs: [unit-test, lint]
+    needs: [build, hadolint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -112,14 +124,3 @@ jobs:
           tags: dodream-engine:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  hadolint:
-    name: Dockerfile Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - name: Hadolint
-        uses: hadolint/hadolint-action@v3.3.0
-        with:
-          dockerfile: Dockerfile
-          config: .hadolint.yaml
