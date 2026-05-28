@@ -30,7 +30,6 @@ func (s *UserStore) Create(ctx context.Context, u *core.User) (*core.User, error
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 	return core.NewUser(
-		core.UserID(created.ID),
 		created.Nickname,
 		created.ProviderID,
 	), nil
@@ -45,7 +44,6 @@ func (s *UserStore) GetByID(ctx context.Context, id core.UserID) (*core.User, er
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
 	return core.NewUser(
-		core.UserID(u.ID),
 		u.Nickname,
 		u.ProviderID,
 	), nil
@@ -61,7 +59,6 @@ func (s *UserStore) Update(ctx context.Context, u *core.User) (*core.User, error
 		return nil, fmt.Errorf("update user: %w", err)
 	}
 	return core.NewUser(
-		core.UserID(updated.ID),
 		updated.Nickname,
 		updated.ProviderID,
 	), nil
@@ -86,7 +83,6 @@ func (s *UserStore) List(ctx context.Context) ([]*core.User, error) {
 	result := make([]*core.User, len(users))
 	for i, u := range users {
 		result[i] = core.NewUser(
-			core.UserID(u.ID),
 			u.Nickname,
 			u.ProviderID,
 		)

@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // CollectionID is a unique identifier for a Collection.
 type CollectionID string
@@ -19,12 +23,12 @@ type Collection struct {
 	updatedAt time.Time
 }
 
-// NewCollection creates a new Collection with the given id, name and creator.
-// It initializes createdAt and updatedAt to the current time.
-func NewCollection(id CollectionID, name string, creator UserID) *Collection {
+// NewCollection creates a new Collection with the given name and creator.
+// It auto-generates a UUID for the id and initializes createdAt and updatedAt.
+func NewCollection(name string, creator UserID) *Collection {
 	now := time.Now()
 	return &Collection{
-		id:        id,
+		id:        CollectionID(uuid.New().String()),
 		name:      name,
 		creator:   creator,
 		createdAt: now,

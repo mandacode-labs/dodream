@@ -32,7 +32,6 @@ func (s *CardStore) Create(ctx context.Context, c *core.Card) (*core.Card, error
 		return nil, fmt.Errorf("create card: %w", err)
 	}
 	return core.NewCard(
-		core.CardID(created.ID),
 		created.Hint,
 		created.Content,
 		c.Creator(),
@@ -49,7 +48,6 @@ func (s *CardStore) GetByID(ctx context.Context, id core.CardID) (*core.Card, er
 		return nil, fmt.Errorf("get card by id: %w", err)
 	}
 	return core.NewCard(
-		core.CardID(c.ID),
 		c.Hint,
 		c.Content,
 		core.UserID(c.Edges.Creator.ID),
@@ -66,7 +64,6 @@ func (s *CardStore) Update(ctx context.Context, c *core.Card) (*core.Card, error
 		return nil, fmt.Errorf("update card: %w", err)
 	}
 	return core.NewCard(
-		core.CardID(updated.ID),
 		updated.Hint,
 		updated.Content,
 		c.Creator(),
@@ -92,7 +89,6 @@ func (s *CardStore) List(ctx context.Context) ([]*core.Card, error) {
 	result := make([]*core.Card, len(cards))
 	for i, c := range cards {
 		result[i] = core.NewCard(
-			core.CardID(c.ID),
 			c.Hint,
 			c.Content,
 			core.UserID(c.Edges.Creator.ID),
@@ -136,7 +132,6 @@ func (s *CardStore) ListByDeck(ctx context.Context, deckID core.DeckID) ([]*core
 	result := make([]*core.Card, len(cards))
 	for i, c := range cards {
 		result[i] = core.NewCard(
-			core.CardID(c.ID),
 			c.Hint,
 			c.Content,
 			core.UserID(c.Edges.Creator.ID),

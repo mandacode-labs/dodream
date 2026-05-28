@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // UserID is a unique identifier for a User.
 type UserID string
@@ -19,12 +23,12 @@ type User struct {
 	updatedAt  time.Time
 }
 
-// NewUser creates a new User with the given id, nickname and providerID.
-// It initializes createdAt and updatedAt to the current time.
-func NewUser(id UserID, nickname string, providerID string) *User {
+// NewUser creates a new User with the given nickname and providerID.
+// It auto-generates a UUID for the id and initializes createdAt and updatedAt.
+func NewUser(nickname string, providerID string) *User {
 	now := time.Now()
 	return &User{
-		id:         id,
+		id:         UserID(uuid.New().String()),
 		nickname:   nickname,
 		providerID: providerID,
 		createdAt:  now,

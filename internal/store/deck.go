@@ -31,7 +31,6 @@ func (s *DeckStore) Create(ctx context.Context, d *core.Deck) (*core.Deck, error
 		return nil, fmt.Errorf("create deck: %w", err)
 	}
 	return core.NewDeck(
-		core.DeckID(created.ID),
 		created.Name,
 		d.Creator(),
 	), nil
@@ -47,7 +46,6 @@ func (s *DeckStore) GetByID(ctx context.Context, id core.DeckID) (*core.Deck, er
 		return nil, fmt.Errorf("get deck by id: %w", err)
 	}
 	return core.NewDeck(
-		core.DeckID(d.ID),
 		d.Name,
 		core.UserID(d.Edges.Creator.ID),
 	), nil
@@ -62,7 +60,6 @@ func (s *DeckStore) Update(ctx context.Context, d *core.Deck) (*core.Deck, error
 		return nil, fmt.Errorf("update deck: %w", err)
 	}
 	return core.NewDeck(
-		core.DeckID(updated.ID),
 		updated.Name,
 		d.Creator(),
 	), nil
@@ -87,7 +84,6 @@ func (s *DeckStore) List(ctx context.Context) ([]*core.Deck, error) {
 	result := make([]*core.Deck, len(decks))
 	for i, d := range decks {
 		result[i] = core.NewDeck(
-			core.DeckID(d.ID),
 			d.Name,
 			core.UserID(d.Edges.Creator.ID),
 		)
@@ -108,7 +104,6 @@ func (s *DeckStore) ListByCreator(ctx context.Context, userID core.UserID) ([]*c
 	result := make([]*core.Deck, len(decks))
 	for i, d := range decks {
 		result[i] = core.NewDeck(
-			core.DeckID(d.ID),
 			d.Name,
 			core.UserID(d.Edges.Creator.ID),
 		)

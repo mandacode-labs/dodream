@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // CollectionCardID is a unique identifier for a CollectionCard.
 type CollectionCardID string
@@ -20,17 +24,16 @@ type CollectionCard struct {
 	updatedAt    time.Time
 }
 
-// NewCollectionCard creates a new CollectionCard with the given id, collectionID, cardID, and optional deckID.
-// It initializes createdAt and updatedAt to the current time.
+// NewCollectionCard creates a new CollectionCard with the given collectionID, cardID, and optional deckID.
+// It auto-generates a UUID for the id and initializes createdAt and updatedAt.
 func NewCollectionCard(
-	id CollectionCardID,
 	collectionID CollectionID,
 	cardID CardID,
 	deckID *DeckID,
 ) *CollectionCard {
 	now := time.Now()
 	return &CollectionCard{
-		id:           id,
+		id:           CollectionCardID(uuid.New().String()),
 		collectionID: collectionID,
 		cardID:       cardID,
 		deckID:       deckID,

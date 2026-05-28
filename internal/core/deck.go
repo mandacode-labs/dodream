@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // DeckID is a unique identifier for a Deck.
 type DeckID string
@@ -19,12 +23,12 @@ type Deck struct {
 	updatedAt time.Time
 }
 
-// NewDeck creates a new Deck with the given id, name and creator.
-// It initializes createdAt and updatedAt to the current time.
-func NewDeck(id DeckID, name string, creator UserID) *Deck {
+// NewDeck creates a new Deck with the given name and creator.
+// It auto-generates a UUID for the id and initializes createdAt and updatedAt.
+func NewDeck(name string, creator UserID) *Deck {
 	now := time.Now()
 	return &Deck{
-		id:        id,
+		id:        DeckID(uuid.New().String()),
 		name:      name,
 		creator:   creator,
 		createdAt: now,

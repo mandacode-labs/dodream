@@ -32,7 +32,6 @@ func (s *CollectionStore) Create(ctx context.Context, c *core.Collection) (*core
 		return nil, fmt.Errorf("create collection: %w", err)
 	}
 	return core.NewCollection(
-		core.CollectionID(created.ID),
 		created.Name,
 		c.Creator(),
 	), nil
@@ -48,7 +47,6 @@ func (s *CollectionStore) GetByID(ctx context.Context, id core.CollectionID) (*c
 		return nil, fmt.Errorf("get collection by id: %w", err)
 	}
 	return core.NewCollection(
-		core.CollectionID(c.ID),
 		c.Name,
 		core.UserID(c.Edges.Creator.ID),
 	), nil
@@ -63,7 +61,6 @@ func (s *CollectionStore) Update(ctx context.Context, c *core.Collection) (*core
 		return nil, fmt.Errorf("update collection: %w", err)
 	}
 	return core.NewCollection(
-		core.CollectionID(updated.ID),
 		updated.Name,
 		c.Creator(),
 	), nil
@@ -88,7 +85,6 @@ func (s *CollectionStore) List(ctx context.Context) ([]*core.Collection, error) 
 	result := make([]*core.Collection, len(collections))
 	for i, c := range collections {
 		result[i] = core.NewCollection(
-			core.CollectionID(c.ID),
 			c.Name,
 			core.UserID(c.Edges.Creator.ID),
 		)
@@ -109,7 +105,6 @@ func (s *CollectionStore) ListByCreator(ctx context.Context, userID core.UserID)
 	result := make([]*core.Collection, len(collections))
 	for i, c := range collections {
 		result[i] = core.NewCollection(
-			core.CollectionID(c.ID),
 			c.Name,
 			core.UserID(c.Edges.Creator.ID),
 		)
@@ -139,7 +134,6 @@ func (s *CollectionStore) AddCard(ctx context.Context, collectionID core.Collect
 	}
 
 	return core.NewCollectionCard(
-		core.CollectionCardID(created.ID),
 		core.CollectionID(created.Edges.Collection.ID),
 		core.CardID(created.Edges.Card.ID),
 		dID,
@@ -175,7 +169,6 @@ func (s *CollectionStore) ListCards(ctx context.Context, collectionID core.Colle
 			dID = &id
 		}
 		result[i] = core.NewCollectionCard(
-			core.CollectionCardID(c.ID),
 			core.CollectionID(c.Edges.Collection.ID),
 			core.CardID(c.Edges.Card.ID),
 			dID,

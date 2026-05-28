@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // CardID is a unique identifier for a Card.
 type CardID string
@@ -20,12 +24,12 @@ type Card struct {
 	updatedAt time.Time
 }
 
-// NewCard creates a new Card with the given id, hint, content and creator.
-// It initializes createdAt and updatedAt to the current time.
-func NewCard(id CardID, hint string, content string, creator UserID) *Card {
+// NewCard creates a new Card with the given hint, content and creator.
+// It auto-generates a UUID for the id and initializes createdAt and updatedAt.
+func NewCard(hint string, content string, creator UserID) *Card {
 	now := time.Now()
 	return &Card{
-		id:        id,
+		id:        CardID(uuid.New().String()),
 		hint:      hint,
 		content:   content,
 		creator:   creator,
