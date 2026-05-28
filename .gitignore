@@ -30,7 +30,7 @@ Thumbs.db
 
 # Project specific
 bin/
-dodream-engine
+./dodream-engine
 cover.out
 
 # Environment files

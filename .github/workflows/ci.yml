@@ -107,7 +107,7 @@ jobs:
         uses: docker/build-push-action@v7.0.0
         with:
           context: .
-          file: build/docker/Dockerfile
+          file: Dockerfile
           push: false
           tags: dodream-engine:test
           cache-from: type=gha
@@ -121,5 +121,5 @@ jobs:
       - name: Hadolint
         uses: hadolint/hadolint-action@v3.3.0
         with:
-          dockerfile: build/docker/Dockerfile
+          dockerfile: Dockerfile
           config: .hadolint.yaml

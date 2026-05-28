@@ -45,7 +45,7 @@ jobs:
         uses: docker/build-push-action@v7.0.0
         with:
           context: .
-          file: build/docker/Dockerfile
+          file: Dockerfile
           push: false
           load: true
           tags: dodream-engine:scan
