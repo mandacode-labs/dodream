@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"github.com/mandacode-labs/dodream/ent"
 	"github.com/mandacode-labs/dodream/internal/api/card"
 	"github.com/mandacode-labs/dodream/internal/api/collection"
@@ -47,10 +48,10 @@ func (s *Server) setupRoutes() {
 	collectionStore := store.NewCollectionStore(s.client)
 
 	// Services
-	userService := userservice.NewUserService(userStore)
-	cardService := cardservice.NewCardService(cardStore)
-	deckService := deckservice.NewDeckService(deckStore)
-	collectionService := collectionservice.NewCollectionService(collectionStore)
+	userService := userservice.NewService(userStore)
+	cardService := cardservice.NewService(cardStore)
+	deckService := deckservice.NewService(deckStore)
+	collectionService := collectionservice.NewService(collectionStore)
 
 	// Handlers
 	healthHandler := health.NewHandler()

@@ -7,35 +7,28 @@ import (
 	"github.com/mandacode-labs/dodream/internal/store"
 )
 
-// Service defines the interface for user-related business logic.
-type Service interface {
-	Create(ctx context.Context, nickname string, providerID string) (*core.User, error)
-	GetByID(ctx context.Context, id core.UserID) (*core.User, error)
-	List(ctx context.Context) ([]*core.User, error)
-}
-
-// UserService implements the Service interface.
-type UserService struct {
+// Service provides user-related business logic.
+type Service struct {
 	store *store.UserStore
 }
 
-// NewUserService creates a new UserService with the given store.
-func NewUserService(store *store.UserStore) *UserService {
-	return &UserService{store: store}
+// NewService creates a new Service with the given store.
+func NewService(store *store.UserStore) *Service {
+	return &Service{store: store}
 }
 
 // Create creates a new user.
-func (s *UserService) Create(ctx context.Context, nickname string, providerID string) (*core.User, error) {
+func (s *Service) Create(ctx context.Context, nickname string, providerID string) (*core.User, error) {
 	user := core.NewUser(nickname, providerID)
 	return s.store.Create(ctx, user)
 }
 
 // GetByID retrieves a user by ID.
-func (s *UserService) GetByID(ctx context.Context, id core.UserID) (*core.User, error) {
+func (s *Service) GetByID(ctx context.Context, id core.UserID) (*core.User, error) {
 	return s.store.GetByID(ctx, id)
 }
 
 // List retrieves all users.
-func (s *UserService) List(ctx context.Context) ([]*core.User, error) {
+func (s *Service) List(ctx context.Context) ([]*core.User, error) {
 	return s.store.List(ctx)
 }

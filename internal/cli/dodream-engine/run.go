@@ -6,9 +6,10 @@ import (
 	"log"
 
 	_ "github.com/lib/pq"
+	"github.com/spf13/cobra"
+
 	"github.com/mandacode-labs/dodream/ent"
 	"github.com/mandacode-labs/dodream/internal/api"
-	"github.com/spf13/cobra"
 )
 
 // runCmd represents the run command.

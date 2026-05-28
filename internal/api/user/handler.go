@@ -4,17 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/mandacode-labs/dodream/internal/core"
 	userservice "github.com/mandacode-labs/dodream/internal/service/user"
 )
 
 // Handler handles user-related HTTP requests.
 type Handler struct {
-	service userservice.Service
+	service *userservice.Service
 }
 
 // NewHandler creates a new Handler.
-func NewHandler(service userservice.Service) *Handler {
+func NewHandler(service *userservice.Service) *Handler {
 	return &Handler{service: service}
 }
 
