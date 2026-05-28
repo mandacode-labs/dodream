@@ -351,21 +351,44 @@ func HasDecksWith(preds ...predicate.Deck) predicate.Card {
 	})
 }
 
-// HasNotebookCards applies the HasEdge predicate on the "notebook_cards" edge.
-func HasNotebookCards() predicate.Card {
+// HasCollectionCards applies the HasEdge predicate on the "collection_cards" edge.
+func HasCollectionCards() predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, NotebookCardsTable, NotebookCardsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, CollectionCardsTable, CollectionCardsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNotebookCardsWith applies the HasEdge predicate on the "notebook_cards" edge with a given conditions (other predicates).
-func HasNotebookCardsWith(preds ...predicate.NotebookCard) predicate.Card {
+// HasCollectionCardsWith applies the HasEdge predicate on the "collection_cards" edge with a given conditions (other predicates).
+func HasCollectionCardsWith(preds ...predicate.CollectionCard) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		step := newNotebookCardsStep()
+		step := newCollectionCardsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasStudyEvents applies the HasEdge predicate on the "study_events" edge.
+func HasStudyEvents() predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StudyEventsTable, StudyEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStudyEventsWith applies the HasEdge predicate on the "study_events" edge with a given conditions (other predicates).
+func HasStudyEventsWith(preds ...predicate.StudyEvent) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		step := newStudyEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

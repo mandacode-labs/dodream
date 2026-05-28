@@ -31,6 +31,63 @@ var (
 			},
 		},
 	}
+	// CollectionsColumns holds the columns for the "collections" table.
+	CollectionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_collections", Type: field.TypeString},
+	}
+	// CollectionsTable holds the schema information for the "collections" table.
+	CollectionsTable = &schema.Table{
+		Name:       "collections",
+		Columns:    CollectionsColumns,
+		PrimaryKey: []*schema.Column{CollectionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "collections_users_collections",
+				Columns:    []*schema.Column{CollectionsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// CollectionCardsColumns holds the columns for the "collection_cards" table.
+	CollectionCardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "card_collection_cards", Type: field.TypeString},
+		{Name: "collection_collection_cards", Type: field.TypeString},
+		{Name: "deck_collection_cards", Type: field.TypeString, Nullable: true},
+	}
+	// CollectionCardsTable holds the schema information for the "collection_cards" table.
+	CollectionCardsTable = &schema.Table{
+		Name:       "collection_cards",
+		Columns:    CollectionCardsColumns,
+		PrimaryKey: []*schema.Column{CollectionCardsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "collection_cards_cards_collection_cards",
+				Columns:    []*schema.Column{CollectionCardsColumns[3]},
+				RefColumns: []*schema.Column{CardsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "collection_cards_collections_collection_cards",
+				Columns:    []*schema.Column{CollectionCardsColumns[4]},
+				RefColumns: []*schema.Column{CollectionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "collection_cards_decks_collection_cards",
+				Columns:    []*schema.Column{CollectionCardsColumns[5]},
+				RefColumns: []*schema.Column{DecksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// DecksColumns holds the columns for the "decks" table.
 	DecksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -53,59 +110,46 @@ var (
 			},
 		},
 	}
-	// NotebooksColumns holds the columns for the "notebooks" table.
-	NotebooksColumns = []*schema.Column{
+	// StudyEventsColumns holds the columns for the "study_events" table.
+	StudyEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "name", Type: field.TypeString},
+		{Name: "event_type", Type: field.TypeString},
+		{Name: "quality", Type: field.TypeInt, Nullable: true},
+		{Name: "response_time_ns", Type: field.TypeInt64, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_notebooks", Type: field.TypeString},
+		{Name: "card_study_events", Type: field.TypeString},
+		{Name: "collection_study_events", Type: field.TypeString},
+		{Name: "deck_study_events", Type: field.TypeString, Nullable: true},
+		{Name: "user_study_events", Type: field.TypeString},
 	}
-	// NotebooksTable holds the schema information for the "notebooks" table.
-	NotebooksTable = &schema.Table{
-		Name:       "notebooks",
-		Columns:    NotebooksColumns,
-		PrimaryKey: []*schema.Column{NotebooksColumns[0]},
+	// StudyEventsTable holds the schema information for the "study_events" table.
+	StudyEventsTable = &schema.Table{
+		Name:       "study_events",
+		Columns:    StudyEventsColumns,
+		PrimaryKey: []*schema.Column{StudyEventsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "notebooks_users_notebooks",
-				Columns:    []*schema.Column{NotebooksColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
-	// NotebookCardsColumns holds the columns for the "notebook_cards" table.
-	NotebookCardsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "card_notebook_cards", Type: field.TypeString},
-		{Name: "deck_notebook_cards", Type: field.TypeString, Nullable: true},
-		{Name: "notebook_notebook_cards", Type: field.TypeString},
-	}
-	// NotebookCardsTable holds the schema information for the "notebook_cards" table.
-	NotebookCardsTable = &schema.Table{
-		Name:       "notebook_cards",
-		Columns:    NotebookCardsColumns,
-		PrimaryKey: []*schema.Column{NotebookCardsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "notebook_cards_cards_notebook_cards",
-				Columns:    []*schema.Column{NotebookCardsColumns[3]},
+				Symbol:     "study_events_cards_study_events",
+				Columns:    []*schema.Column{StudyEventsColumns[5]},
 				RefColumns: []*schema.Column{CardsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "notebook_cards_decks_notebook_cards",
-				Columns:    []*schema.Column{NotebookCardsColumns[4]},
+				Symbol:     "study_events_collections_study_events",
+				Columns:    []*schema.Column{StudyEventsColumns[6]},
+				RefColumns: []*schema.Column{CollectionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "study_events_decks_study_events",
+				Columns:    []*schema.Column{StudyEventsColumns[7]},
 				RefColumns: []*schema.Column{DecksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "notebook_cards_notebooks_notebook_cards",
-				Columns:    []*schema.Column{NotebookCardsColumns[5]},
-				RefColumns: []*schema.Column{NotebooksColumns[0]},
+				Symbol:     "study_events_users_study_events",
+				Columns:    []*schema.Column{StudyEventsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -152,9 +196,10 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CardsTable,
+		CollectionsTable,
+		CollectionCardsTable,
 		DecksTable,
-		NotebooksTable,
-		NotebookCardsTable,
+		StudyEventsTable,
 		UsersTable,
 		CardDecksTable,
 	}
@@ -162,11 +207,15 @@ var (
 
 func init() {
 	CardsTable.ForeignKeys[0].RefTable = UsersTable
+	CollectionsTable.ForeignKeys[0].RefTable = UsersTable
+	CollectionCardsTable.ForeignKeys[0].RefTable = CardsTable
+	CollectionCardsTable.ForeignKeys[1].RefTable = CollectionsTable
+	CollectionCardsTable.ForeignKeys[2].RefTable = DecksTable
 	DecksTable.ForeignKeys[0].RefTable = UsersTable
-	NotebooksTable.ForeignKeys[0].RefTable = UsersTable
-	NotebookCardsTable.ForeignKeys[0].RefTable = CardsTable
-	NotebookCardsTable.ForeignKeys[1].RefTable = DecksTable
-	NotebookCardsTable.ForeignKeys[2].RefTable = NotebooksTable
+	StudyEventsTable.ForeignKeys[0].RefTable = CardsTable
+	StudyEventsTable.ForeignKeys[1].RefTable = CollectionsTable
+	StudyEventsTable.ForeignKeys[2].RefTable = DecksTable
+	StudyEventsTable.ForeignKeys[3].RefTable = UsersTable
 	CardDecksTable.ForeignKeys[0].RefTable = CardsTable
 	CardDecksTable.ForeignKeys[1].RefTable = DecksTable
 }

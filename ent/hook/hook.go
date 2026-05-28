@@ -21,6 +21,30 @@ func (f CardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CardMutation", m)
 }
 
+// The CollectionFunc type is an adapter to allow the use of ordinary
+// function as Collection mutator.
+type CollectionFunc func(context.Context, *ent.CollectionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CollectionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CollectionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CollectionMutation", m)
+}
+
+// The CollectionCardFunc type is an adapter to allow the use of ordinary
+// function as CollectionCard mutator.
+type CollectionCardFunc func(context.Context, *ent.CollectionCardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CollectionCardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CollectionCardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CollectionCardMutation", m)
+}
+
 // The DeckFunc type is an adapter to allow the use of ordinary
 // function as Deck mutator.
 type DeckFunc func(context.Context, *ent.DeckMutation) (ent.Value, error)
@@ -33,28 +57,16 @@ func (f DeckFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeckMutation", m)
 }
 
-// The NotebookFunc type is an adapter to allow the use of ordinary
-// function as Notebook mutator.
-type NotebookFunc func(context.Context, *ent.NotebookMutation) (ent.Value, error)
+// The StudyEventFunc type is an adapter to allow the use of ordinary
+// function as StudyEvent mutator.
+type StudyEventFunc func(context.Context, *ent.StudyEventMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f NotebookFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.NotebookMutation); ok {
+func (f StudyEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StudyEventMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotebookMutation", m)
-}
-
-// The NotebookCardFunc type is an adapter to allow the use of ordinary
-// function as NotebookCard mutator.
-type NotebookCardFunc func(context.Context, *ent.NotebookCardMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f NotebookCardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.NotebookCardMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotebookCardMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StudyEventMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

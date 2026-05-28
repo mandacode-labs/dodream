@@ -11,26 +11,26 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
 )
 
-// NotebookCardCreate is the builder for creating a NotebookCard entity.
-type NotebookCardCreate struct {
+// CollectionCardCreate is the builder for creating a CollectionCard entity.
+type CollectionCardCreate struct {
 	config
-	mutation *NotebookCardMutation
+	mutation *CollectionCardMutation
 	hooks    []Hook
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (_c *NotebookCardCreate) SetCreatedAt(v time.Time) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetCreatedAt(v time.Time) *CollectionCardCreate {
 	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (_c *NotebookCardCreate) SetNillableCreatedAt(v *time.Time) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetNillableCreatedAt(v *time.Time) *CollectionCardCreate {
 	if v != nil {
 		_c.SetCreatedAt(*v)
 	}
@@ -38,13 +38,13 @@ func (_c *NotebookCardCreate) SetNillableCreatedAt(v *time.Time) *NotebookCardCr
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_c *NotebookCardCreate) SetUpdatedAt(v time.Time) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetUpdatedAt(v time.Time) *CollectionCardCreate {
 	_c.mutation.SetUpdatedAt(v)
 	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *NotebookCardCreate) SetNillableUpdatedAt(v *time.Time) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetNillableUpdatedAt(v *time.Time) *CollectionCardCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
@@ -52,41 +52,41 @@ func (_c *NotebookCardCreate) SetNillableUpdatedAt(v *time.Time) *NotebookCardCr
 }
 
 // SetID sets the "id" field.
-func (_c *NotebookCardCreate) SetID(v string) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetID(v string) *CollectionCardCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
-// SetNotebookID sets the "notebook" edge to the Notebook entity by ID.
-func (_c *NotebookCardCreate) SetNotebookID(id string) *NotebookCardCreate {
-	_c.mutation.SetNotebookID(id)
+// SetCollectionID sets the "collection" edge to the Collection entity by ID.
+func (_c *CollectionCardCreate) SetCollectionID(id string) *CollectionCardCreate {
+	_c.mutation.SetCollectionID(id)
 	return _c
 }
 
-// SetNotebook sets the "notebook" edge to the Notebook entity.
-func (_c *NotebookCardCreate) SetNotebook(v *Notebook) *NotebookCardCreate {
-	return _c.SetNotebookID(v.ID)
+// SetCollection sets the "collection" edge to the Collection entity.
+func (_c *CollectionCardCreate) SetCollection(v *Collection) *CollectionCardCreate {
+	return _c.SetCollectionID(v.ID)
 }
 
 // SetCardID sets the "card" edge to the Card entity by ID.
-func (_c *NotebookCardCreate) SetCardID(id string) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetCardID(id string) *CollectionCardCreate {
 	_c.mutation.SetCardID(id)
 	return _c
 }
 
 // SetCard sets the "card" edge to the Card entity.
-func (_c *NotebookCardCreate) SetCard(v *Card) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetCard(v *Card) *CollectionCardCreate {
 	return _c.SetCardID(v.ID)
 }
 
 // SetDeckID sets the "deck" edge to the Deck entity by ID.
-func (_c *NotebookCardCreate) SetDeckID(id string) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetDeckID(id string) *CollectionCardCreate {
 	_c.mutation.SetDeckID(id)
 	return _c
 }
 
 // SetNillableDeckID sets the "deck" edge to the Deck entity by ID if the given value is not nil.
-func (_c *NotebookCardCreate) SetNillableDeckID(id *string) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetNillableDeckID(id *string) *CollectionCardCreate {
 	if id != nil {
 		_c = _c.SetDeckID(*id)
 	}
@@ -94,23 +94,23 @@ func (_c *NotebookCardCreate) SetNillableDeckID(id *string) *NotebookCardCreate 
 }
 
 // SetDeck sets the "deck" edge to the Deck entity.
-func (_c *NotebookCardCreate) SetDeck(v *Deck) *NotebookCardCreate {
+func (_c *CollectionCardCreate) SetDeck(v *Deck) *CollectionCardCreate {
 	return _c.SetDeckID(v.ID)
 }
 
-// Mutation returns the NotebookCardMutation object of the builder.
-func (_c *NotebookCardCreate) Mutation() *NotebookCardMutation {
+// Mutation returns the CollectionCardMutation object of the builder.
+func (_c *CollectionCardCreate) Mutation() *CollectionCardMutation {
 	return _c.mutation
 }
 
-// Save creates the NotebookCard in the database.
-func (_c *NotebookCardCreate) Save(ctx context.Context) (*NotebookCard, error) {
+// Save creates the CollectionCard in the database.
+func (_c *CollectionCardCreate) Save(ctx context.Context) (*CollectionCard, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *NotebookCardCreate) SaveX(ctx context.Context) *NotebookCard {
+func (_c *CollectionCardCreate) SaveX(ctx context.Context) *CollectionCard {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -119,48 +119,48 @@ func (_c *NotebookCardCreate) SaveX(ctx context.Context) *NotebookCard {
 }
 
 // Exec executes the query.
-func (_c *NotebookCardCreate) Exec(ctx context.Context) error {
+func (_c *CollectionCardCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *NotebookCardCreate) ExecX(ctx context.Context) {
+func (_c *CollectionCardCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *NotebookCardCreate) defaults() {
+func (_c *CollectionCardCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := notebookcard.DefaultCreatedAt()
+		v := collectioncard.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := notebookcard.DefaultUpdatedAt()
+		v := collectioncard.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *NotebookCardCreate) check() error {
+func (_c *CollectionCardCreate) check() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "NotebookCard.created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CollectionCard.created_at"`)}
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "NotebookCard.updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "CollectionCard.updated_at"`)}
 	}
-	if len(_c.mutation.NotebookIDs()) == 0 {
-		return &ValidationError{Name: "notebook", err: errors.New(`ent: missing required edge "NotebookCard.notebook"`)}
+	if len(_c.mutation.CollectionIDs()) == 0 {
+		return &ValidationError{Name: "collection", err: errors.New(`ent: missing required edge "CollectionCard.collection"`)}
 	}
 	if len(_c.mutation.CardIDs()) == 0 {
-		return &ValidationError{Name: "card", err: errors.New(`ent: missing required edge "NotebookCard.card"`)}
+		return &ValidationError{Name: "card", err: errors.New(`ent: missing required edge "CollectionCard.card"`)}
 	}
 	return nil
 }
 
-func (_c *NotebookCardCreate) sqlSave(ctx context.Context) (*NotebookCard, error) {
+func (_c *CollectionCardCreate) sqlSave(ctx context.Context) (*CollectionCard, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (_c *NotebookCardCreate) sqlSave(ctx context.Context) (*NotebookCard, error
 		if id, ok := _spec.ID.Value.(string); ok {
 			_node.ID = id
 		} else {
-			return nil, fmt.Errorf("unexpected NotebookCard.ID type: %T", _spec.ID.Value)
+			return nil, fmt.Errorf("unexpected CollectionCard.ID type: %T", _spec.ID.Value)
 		}
 	}
 	_c.mutation.id = &_node.ID
@@ -183,46 +183,46 @@ func (_c *NotebookCardCreate) sqlSave(ctx context.Context) (*NotebookCard, error
 	return _node, nil
 }
 
-func (_c *NotebookCardCreate) createSpec() (*NotebookCard, *sqlgraph.CreateSpec) {
+func (_c *CollectionCardCreate) createSpec() (*CollectionCard, *sqlgraph.CreateSpec) {
 	var (
-		_node = &NotebookCard{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(notebookcard.Table, sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString))
+		_node = &CollectionCard{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(collectioncard.Table, sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(notebookcard.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(collectioncard.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(notebookcard.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(collectioncard.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := _c.mutation.NotebookIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CollectionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   notebookcard.NotebookTable,
-			Columns: []string{notebookcard.NotebookColumn},
+			Table:   collectioncard.CollectionTable,
+			Columns: []string{collectioncard.CollectionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebook.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.notebook_notebook_cards = &nodes[0]
+		_node.collection_collection_cards = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.CardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   notebookcard.CardTable,
-			Columns: []string{notebookcard.CardColumn},
+			Table:   collectioncard.CardTable,
+			Columns: []string{collectioncard.CardColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(card.FieldID, field.TypeString),
@@ -231,15 +231,15 @@ func (_c *NotebookCardCreate) createSpec() (*NotebookCard, *sqlgraph.CreateSpec)
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.card_notebook_cards = &nodes[0]
+		_node.card_collection_cards = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.DeckIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   notebookcard.DeckTable,
-			Columns: []string{notebookcard.DeckColumn},
+			Table:   collectioncard.DeckTable,
+			Columns: []string{collectioncard.DeckColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
@@ -248,33 +248,33 @@ func (_c *NotebookCardCreate) createSpec() (*NotebookCard, *sqlgraph.CreateSpec)
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.deck_notebook_cards = &nodes[0]
+		_node.deck_collection_cards = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
 
-// NotebookCardCreateBulk is the builder for creating many NotebookCard entities in bulk.
-type NotebookCardCreateBulk struct {
+// CollectionCardCreateBulk is the builder for creating many CollectionCard entities in bulk.
+type CollectionCardCreateBulk struct {
 	config
 	err      error
-	builders []*NotebookCardCreate
+	builders []*CollectionCardCreate
 }
 
-// Save creates the NotebookCard entities in the database.
-func (_c *NotebookCardCreateBulk) Save(ctx context.Context) ([]*NotebookCard, error) {
+// Save creates the CollectionCard entities in the database.
+func (_c *CollectionCardCreateBulk) Save(ctx context.Context) ([]*CollectionCard, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*NotebookCard, len(_c.builders))
+	nodes := make([]*CollectionCard, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*NotebookCardMutation)
+				mutation, ok := m.(*CollectionCardMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -317,7 +317,7 @@ func (_c *NotebookCardCreateBulk) Save(ctx context.Context) ([]*NotebookCard, er
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *NotebookCardCreateBulk) SaveX(ctx context.Context) []*NotebookCard {
+func (_c *CollectionCardCreateBulk) SaveX(ctx context.Context) []*CollectionCard {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -326,13 +326,13 @@ func (_c *NotebookCardCreateBulk) SaveX(ctx context.Context) []*NotebookCard {
 }
 
 // Exec executes the query.
-func (_c *NotebookCardCreateBulk) Exec(ctx context.Context) error {
+func (_c *CollectionCardCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *NotebookCardCreateBulk) ExecX(ctx context.Context) {
+func (_c *CollectionCardCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

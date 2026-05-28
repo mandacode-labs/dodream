@@ -26,8 +26,10 @@ const (
 	EdgeCards = "cards"
 	// EdgeDecks holds the string denoting the decks edge name in mutations.
 	EdgeDecks = "decks"
-	// EdgeNotebooks holds the string denoting the notebooks edge name in mutations.
-	EdgeNotebooks = "notebooks"
+	// EdgeCollections holds the string denoting the collections edge name in mutations.
+	EdgeCollections = "collections"
+	// EdgeStudyEvents holds the string denoting the study_events edge name in mutations.
+	EdgeStudyEvents = "study_events"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// CardsTable is the table that holds the cards relation/edge.
@@ -44,13 +46,20 @@ const (
 	DecksInverseTable = "decks"
 	// DecksColumn is the table column denoting the decks relation/edge.
 	DecksColumn = "user_decks"
-	// NotebooksTable is the table that holds the notebooks relation/edge.
-	NotebooksTable = "notebooks"
-	// NotebooksInverseTable is the table name for the Notebook entity.
-	// It exists in this package in order to avoid circular dependency with the "notebook" package.
-	NotebooksInverseTable = "notebooks"
-	// NotebooksColumn is the table column denoting the notebooks relation/edge.
-	NotebooksColumn = "user_notebooks"
+	// CollectionsTable is the table that holds the collections relation/edge.
+	CollectionsTable = "collections"
+	// CollectionsInverseTable is the table name for the Collection entity.
+	// It exists in this package in order to avoid circular dependency with the "collection" package.
+	CollectionsInverseTable = "collections"
+	// CollectionsColumn is the table column denoting the collections relation/edge.
+	CollectionsColumn = "user_collections"
+	// StudyEventsTable is the table that holds the study_events relation/edge.
+	StudyEventsTable = "study_events"
+	// StudyEventsInverseTable is the table name for the StudyEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "studyevent" package.
+	StudyEventsInverseTable = "study_events"
+	// StudyEventsColumn is the table column denoting the study_events relation/edge.
+	StudyEventsColumn = "user_study_events"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -141,17 +150,31 @@ func ByDecks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByNotebooksCount orders the results by notebooks count.
-func ByNotebooksCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCollectionsCount orders the results by collections count.
+func ByCollectionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newNotebooksStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newCollectionsStep(), opts...)
 	}
 }
 
-// ByNotebooks orders the results by notebooks terms.
-func ByNotebooks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByCollections orders the results by collections terms.
+func ByCollections(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newNotebooksStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newCollectionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByStudyEventsCount orders the results by study_events count.
+func ByStudyEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStudyEventsStep(), opts...)
+	}
+}
+
+// ByStudyEvents orders the results by study_events terms.
+func ByStudyEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStudyEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newCardsStep() *sqlgraph.Step {
@@ -168,10 +191,17 @@ func newDecksStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, DecksTable, DecksColumn),
 	)
 }
-func newNotebooksStep() *sqlgraph.Step {
+func newCollectionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(NotebooksInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, NotebooksTable, NotebooksColumn),
+		sqlgraph.To(CollectionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CollectionsTable, CollectionsColumn),
+	)
+}
+func newStudyEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StudyEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StudyEventsTable, StudyEventsColumn),
 	)
 }

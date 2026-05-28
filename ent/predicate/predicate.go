@@ -9,14 +9,17 @@ import (
 // Card is the predicate function for card builders.
 type Card func(*sql.Selector)
 
+// Collection is the predicate function for collection builders.
+type Collection func(*sql.Selector)
+
+// CollectionCard is the predicate function for collectioncard builders.
+type CollectionCard func(*sql.Selector)
+
 // Deck is the predicate function for deck builders.
 type Deck func(*sql.Selector)
 
-// Notebook is the predicate function for notebook builders.
-type Notebook func(*sql.Selector)
-
-// NotebookCard is the predicate function for notebookcard builders.
-type NotebookCard func(*sql.Selector)
+// StudyEvent is the predicate function for studyevent builders.
+type StudyEvent func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

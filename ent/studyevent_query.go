@@ -12,62 +12,64 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
 	"github.com/mandacode-labs/dodream/ent/predicate"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
+	"github.com/mandacode-labs/dodream/ent/user"
 )
 
-// NotebookCardQuery is the builder for querying NotebookCard entities.
-type NotebookCardQuery struct {
+// StudyEventQuery is the builder for querying StudyEvent entities.
+type StudyEventQuery struct {
 	config
-	ctx          *QueryContext
-	order        []notebookcard.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.NotebookCard
-	withNotebook *NotebookQuery
-	withCard     *CardQuery
-	withDeck     *DeckQuery
-	withFKs      bool
+	ctx              *QueryContext
+	order            []studyevent.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.StudyEvent
+	withCollection   *CollectionQuery
+	withCard         *CardQuery
+	withUser         *UserQuery
+	withPreviousDeck *DeckQuery
+	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the NotebookCardQuery builder.
-func (_q *NotebookCardQuery) Where(ps ...predicate.NotebookCard) *NotebookCardQuery {
+// Where adds a new predicate for the StudyEventQuery builder.
+func (_q *StudyEventQuery) Where(ps ...predicate.StudyEvent) *StudyEventQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *NotebookCardQuery) Limit(limit int) *NotebookCardQuery {
+func (_q *StudyEventQuery) Limit(limit int) *StudyEventQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *NotebookCardQuery) Offset(offset int) *NotebookCardQuery {
+func (_q *StudyEventQuery) Offset(offset int) *StudyEventQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *NotebookCardQuery) Unique(unique bool) *NotebookCardQuery {
+func (_q *StudyEventQuery) Unique(unique bool) *StudyEventQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *NotebookCardQuery) Order(o ...notebookcard.OrderOption) *NotebookCardQuery {
+func (_q *StudyEventQuery) Order(o ...studyevent.OrderOption) *StudyEventQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryNotebook chains the current query on the "notebook" edge.
-func (_q *NotebookCardQuery) QueryNotebook() *NotebookQuery {
-	query := (&NotebookClient{config: _q.config}).Query()
+// QueryCollection chains the current query on the "collection" edge.
+func (_q *StudyEventQuery) QueryCollection() *CollectionQuery {
+	query := (&CollectionClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -77,9 +79,9 @@ func (_q *NotebookCardQuery) QueryNotebook() *NotebookQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebookcard.Table, notebookcard.FieldID, selector),
-			sqlgraph.To(notebook.Table, notebook.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebookcard.NotebookTable, notebookcard.NotebookColumn),
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, selector),
+			sqlgraph.To(collection.Table, collection.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.CollectionTable, studyevent.CollectionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -88,7 +90,7 @@ func (_q *NotebookCardQuery) QueryNotebook() *NotebookQuery {
 }
 
 // QueryCard chains the current query on the "card" edge.
-func (_q *NotebookCardQuery) QueryCard() *CardQuery {
+func (_q *StudyEventQuery) QueryCard() *CardQuery {
 	query := (&CardClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -99,9 +101,9 @@ func (_q *NotebookCardQuery) QueryCard() *CardQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebookcard.Table, notebookcard.FieldID, selector),
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, selector),
 			sqlgraph.To(card.Table, card.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebookcard.CardTable, notebookcard.CardColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.CardTable, studyevent.CardColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -109,8 +111,30 @@ func (_q *NotebookCardQuery) QueryCard() *CardQuery {
 	return query
 }
 
-// QueryDeck chains the current query on the "deck" edge.
-func (_q *NotebookCardQuery) QueryDeck() *DeckQuery {
+// QueryUser chains the current query on the "user" edge.
+func (_q *StudyEventQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.UserTable, studyevent.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPreviousDeck chains the current query on the "previous_deck" edge.
+func (_q *StudyEventQuery) QueryPreviousDeck() *DeckQuery {
 	query := (&DeckClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -121,9 +145,9 @@ func (_q *NotebookCardQuery) QueryDeck() *DeckQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebookcard.Table, notebookcard.FieldID, selector),
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, selector),
 			sqlgraph.To(deck.Table, deck.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebookcard.DeckTable, notebookcard.DeckColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.PreviousDeckTable, studyevent.PreviousDeckColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -131,21 +155,21 @@ func (_q *NotebookCardQuery) QueryDeck() *DeckQuery {
 	return query
 }
 
-// First returns the first NotebookCard entity from the query.
-// Returns a *NotFoundError when no NotebookCard was found.
-func (_q *NotebookCardQuery) First(ctx context.Context) (*NotebookCard, error) {
+// First returns the first StudyEvent entity from the query.
+// Returns a *NotFoundError when no StudyEvent was found.
+func (_q *StudyEventQuery) First(ctx context.Context) (*StudyEvent, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{notebookcard.Label}
+		return nil, &NotFoundError{studyevent.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *NotebookCardQuery) FirstX(ctx context.Context) *NotebookCard {
+func (_q *StudyEventQuery) FirstX(ctx context.Context) *StudyEvent {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -153,22 +177,22 @@ func (_q *NotebookCardQuery) FirstX(ctx context.Context) *NotebookCard {
 	return node
 }
 
-// FirstID returns the first NotebookCard ID from the query.
-// Returns a *NotFoundError when no NotebookCard ID was found.
-func (_q *NotebookCardQuery) FirstID(ctx context.Context) (id string, err error) {
+// FirstID returns the first StudyEvent ID from the query.
+// Returns a *NotFoundError when no StudyEvent ID was found.
+func (_q *StudyEventQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{notebookcard.Label}
+		err = &NotFoundError{studyevent.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *NotebookCardQuery) FirstIDX(ctx context.Context) string {
+func (_q *StudyEventQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -176,10 +200,10 @@ func (_q *NotebookCardQuery) FirstIDX(ctx context.Context) string {
 	return id
 }
 
-// Only returns a single NotebookCard entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one NotebookCard entity is found.
-// Returns a *NotFoundError when no NotebookCard entities are found.
-func (_q *NotebookCardQuery) Only(ctx context.Context) (*NotebookCard, error) {
+// Only returns a single StudyEvent entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one StudyEvent entity is found.
+// Returns a *NotFoundError when no StudyEvent entities are found.
+func (_q *StudyEventQuery) Only(ctx context.Context) (*StudyEvent, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -188,14 +212,14 @@ func (_q *NotebookCardQuery) Only(ctx context.Context) (*NotebookCard, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{notebookcard.Label}
+		return nil, &NotFoundError{studyevent.Label}
 	default:
-		return nil, &NotSingularError{notebookcard.Label}
+		return nil, &NotSingularError{studyevent.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *NotebookCardQuery) OnlyX(ctx context.Context) *NotebookCard {
+func (_q *StudyEventQuery) OnlyX(ctx context.Context) *StudyEvent {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -203,10 +227,10 @@ func (_q *NotebookCardQuery) OnlyX(ctx context.Context) *NotebookCard {
 	return node
 }
 
-// OnlyID is like Only, but returns the only NotebookCard ID in the query.
-// Returns a *NotSingularError when more than one NotebookCard ID is found.
+// OnlyID is like Only, but returns the only StudyEvent ID in the query.
+// Returns a *NotSingularError when more than one StudyEvent ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *NotebookCardQuery) OnlyID(ctx context.Context) (id string, err error) {
+func (_q *StudyEventQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -215,15 +239,15 @@ func (_q *NotebookCardQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{notebookcard.Label}
+		err = &NotFoundError{studyevent.Label}
 	default:
-		err = &NotSingularError{notebookcard.Label}
+		err = &NotSingularError{studyevent.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *NotebookCardQuery) OnlyIDX(ctx context.Context) string {
+func (_q *StudyEventQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -231,18 +255,18 @@ func (_q *NotebookCardQuery) OnlyIDX(ctx context.Context) string {
 	return id
 }
 
-// All executes the query and returns a list of NotebookCards.
-func (_q *NotebookCardQuery) All(ctx context.Context) ([]*NotebookCard, error) {
+// All executes the query and returns a list of StudyEvents.
+func (_q *StudyEventQuery) All(ctx context.Context) ([]*StudyEvent, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*NotebookCard, *NotebookCardQuery]()
-	return withInterceptors[[]*NotebookCard](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*StudyEvent, *StudyEventQuery]()
+	return withInterceptors[[]*StudyEvent](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *NotebookCardQuery) AllX(ctx context.Context) []*NotebookCard {
+func (_q *StudyEventQuery) AllX(ctx context.Context) []*StudyEvent {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -250,20 +274,20 @@ func (_q *NotebookCardQuery) AllX(ctx context.Context) []*NotebookCard {
 	return nodes
 }
 
-// IDs executes the query and returns a list of NotebookCard IDs.
-func (_q *NotebookCardQuery) IDs(ctx context.Context) (ids []string, err error) {
+// IDs executes the query and returns a list of StudyEvent IDs.
+func (_q *StudyEventQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(notebookcard.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(studyevent.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *NotebookCardQuery) IDsX(ctx context.Context) []string {
+func (_q *StudyEventQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -272,16 +296,16 @@ func (_q *NotebookCardQuery) IDsX(ctx context.Context) []string {
 }
 
 // Count returns the count of the given query.
-func (_q *NotebookCardQuery) Count(ctx context.Context) (int, error) {
+func (_q *StudyEventQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*NotebookCardQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*StudyEventQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *NotebookCardQuery) CountX(ctx context.Context) int {
+func (_q *StudyEventQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -290,7 +314,7 @@ func (_q *NotebookCardQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *NotebookCardQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *StudyEventQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -303,7 +327,7 @@ func (_q *NotebookCardQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *NotebookCardQuery) ExistX(ctx context.Context) bool {
+func (_q *StudyEventQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -311,41 +335,42 @@ func (_q *NotebookCardQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the NotebookCardQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the StudyEventQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *NotebookCardQuery) Clone() *NotebookCardQuery {
+func (_q *StudyEventQuery) Clone() *StudyEventQuery {
 	if _q == nil {
 		return nil
 	}
-	return &NotebookCardQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]notebookcard.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.NotebookCard{}, _q.predicates...),
-		withNotebook: _q.withNotebook.Clone(),
-		withCard:     _q.withCard.Clone(),
-		withDeck:     _q.withDeck.Clone(),
+	return &StudyEventQuery{
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]studyevent.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.StudyEvent{}, _q.predicates...),
+		withCollection:   _q.withCollection.Clone(),
+		withCard:         _q.withCard.Clone(),
+		withUser:         _q.withUser.Clone(),
+		withPreviousDeck: _q.withPreviousDeck.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithNotebook tells the query-builder to eager-load the nodes that are connected to
-// the "notebook" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NotebookCardQuery) WithNotebook(opts ...func(*NotebookQuery)) *NotebookCardQuery {
-	query := (&NotebookClient{config: _q.config}).Query()
+// WithCollection tells the query-builder to eager-load the nodes that are connected to
+// the "collection" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StudyEventQuery) WithCollection(opts ...func(*CollectionQuery)) *StudyEventQuery {
+	query := (&CollectionClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withNotebook = query
+	_q.withCollection = query
 	return _q
 }
 
 // WithCard tells the query-builder to eager-load the nodes that are connected to
 // the "card" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NotebookCardQuery) WithCard(opts ...func(*CardQuery)) *NotebookCardQuery {
+func (_q *StudyEventQuery) WithCard(opts ...func(*CardQuery)) *StudyEventQuery {
 	query := (&CardClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -354,14 +379,25 @@ func (_q *NotebookCardQuery) WithCard(opts ...func(*CardQuery)) *NotebookCardQue
 	return _q
 }
 
-// WithDeck tells the query-builder to eager-load the nodes that are connected to
-// the "deck" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NotebookCardQuery) WithDeck(opts ...func(*DeckQuery)) *NotebookCardQuery {
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StudyEventQuery) WithUser(opts ...func(*UserQuery)) *StudyEventQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUser = query
+	return _q
+}
+
+// WithPreviousDeck tells the query-builder to eager-load the nodes that are connected to
+// the "previous_deck" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StudyEventQuery) WithPreviousDeck(opts ...func(*DeckQuery)) *StudyEventQuery {
 	query := (&DeckClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withDeck = query
+	_q.withPreviousDeck = query
 	return _q
 }
 
@@ -371,19 +407,19 @@ func (_q *NotebookCardQuery) WithDeck(opts ...func(*DeckQuery)) *NotebookCardQue
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		EventType string `json:"event_type,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.NotebookCard.Query().
-//		GroupBy(notebookcard.FieldCreatedAt).
+//	client.StudyEvent.Query().
+//		GroupBy(studyevent.FieldEventType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *NotebookCardQuery) GroupBy(field string, fields ...string) *NotebookCardGroupBy {
+func (_q *StudyEventQuery) GroupBy(field string, fields ...string) *StudyEventGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &NotebookCardGroupBy{build: _q}
+	grbuild := &StudyEventGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = notebookcard.Label
+	grbuild.label = studyevent.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -394,26 +430,26 @@ func (_q *NotebookCardQuery) GroupBy(field string, fields ...string) *NotebookCa
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		EventType string `json:"event_type,omitempty"`
 //	}
 //
-//	client.NotebookCard.Query().
-//		Select(notebookcard.FieldCreatedAt).
+//	client.StudyEvent.Query().
+//		Select(studyevent.FieldEventType).
 //		Scan(ctx, &v)
-func (_q *NotebookCardQuery) Select(fields ...string) *NotebookCardSelect {
+func (_q *StudyEventQuery) Select(fields ...string) *StudyEventSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &NotebookCardSelect{NotebookCardQuery: _q}
-	sbuild.label = notebookcard.Label
+	sbuild := &StudyEventSelect{StudyEventQuery: _q}
+	sbuild.label = studyevent.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a NotebookCardSelect configured with the given aggregations.
-func (_q *NotebookCardQuery) Aggregate(fns ...AggregateFunc) *NotebookCardSelect {
+// Aggregate returns a StudyEventSelect configured with the given aggregations.
+func (_q *StudyEventQuery) Aggregate(fns ...AggregateFunc) *StudyEventSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *NotebookCardQuery) prepareQuery(ctx context.Context) error {
+func (_q *StudyEventQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -425,7 +461,7 @@ func (_q *NotebookCardQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !notebookcard.ValidColumn(f) {
+		if !studyevent.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -439,28 +475,29 @@ func (_q *NotebookCardQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *NotebookCardQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NotebookCard, error) {
+func (_q *StudyEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*StudyEvent, error) {
 	var (
-		nodes       = []*NotebookCard{}
+		nodes       = []*StudyEvent{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
-			_q.withNotebook != nil,
+		loadedTypes = [4]bool{
+			_q.withCollection != nil,
 			_q.withCard != nil,
-			_q.withDeck != nil,
+			_q.withUser != nil,
+			_q.withPreviousDeck != nil,
 		}
 	)
-	if _q.withNotebook != nil || _q.withCard != nil || _q.withDeck != nil {
+	if _q.withCollection != nil || _q.withCard != nil || _q.withUser != nil || _q.withPreviousDeck != nil {
 		withFKs = true
 	}
 	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, notebookcard.ForeignKeys...)
+		_spec.Node.Columns = append(_spec.Node.Columns, studyevent.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*NotebookCard).scanValues(nil, columns)
+		return (*StudyEvent).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &NotebookCard{config: _q.config}
+		node := &StudyEvent{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -474,35 +511,41 @@ func (_q *NotebookCardQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withNotebook; query != nil {
-		if err := _q.loadNotebook(ctx, query, nodes, nil,
-			func(n *NotebookCard, e *Notebook) { n.Edges.Notebook = e }); err != nil {
+	if query := _q.withCollection; query != nil {
+		if err := _q.loadCollection(ctx, query, nodes, nil,
+			func(n *StudyEvent, e *Collection) { n.Edges.Collection = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := _q.withCard; query != nil {
 		if err := _q.loadCard(ctx, query, nodes, nil,
-			func(n *NotebookCard, e *Card) { n.Edges.Card = e }); err != nil {
+			func(n *StudyEvent, e *Card) { n.Edges.Card = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withDeck; query != nil {
-		if err := _q.loadDeck(ctx, query, nodes, nil,
-			func(n *NotebookCard, e *Deck) { n.Edges.Deck = e }); err != nil {
+	if query := _q.withUser; query != nil {
+		if err := _q.loadUser(ctx, query, nodes, nil,
+			func(n *StudyEvent, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPreviousDeck; query != nil {
+		if err := _q.loadPreviousDeck(ctx, query, nodes, nil,
+			func(n *StudyEvent, e *Deck) { n.Edges.PreviousDeck = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *NotebookCardQuery) loadNotebook(ctx context.Context, query *NotebookQuery, nodes []*NotebookCard, init func(*NotebookCard), assign func(*NotebookCard, *Notebook)) error {
+func (_q *StudyEventQuery) loadCollection(ctx context.Context, query *CollectionQuery, nodes []*StudyEvent, init func(*StudyEvent), assign func(*StudyEvent, *Collection)) error {
 	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*NotebookCard)
+	nodeids := make(map[string][]*StudyEvent)
 	for i := range nodes {
-		if nodes[i].notebook_notebook_cards == nil {
+		if nodes[i].collection_study_events == nil {
 			continue
 		}
-		fk := *nodes[i].notebook_notebook_cards
+		fk := *nodes[i].collection_study_events
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -511,7 +554,7 @@ func (_q *NotebookCardQuery) loadNotebook(ctx context.Context, query *NotebookQu
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(notebook.IDIn(ids...))
+	query.Where(collection.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -519,7 +562,7 @@ func (_q *NotebookCardQuery) loadNotebook(ctx context.Context, query *NotebookQu
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "notebook_notebook_cards" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "collection_study_events" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -527,14 +570,14 @@ func (_q *NotebookCardQuery) loadNotebook(ctx context.Context, query *NotebookQu
 	}
 	return nil
 }
-func (_q *NotebookCardQuery) loadCard(ctx context.Context, query *CardQuery, nodes []*NotebookCard, init func(*NotebookCard), assign func(*NotebookCard, *Card)) error {
+func (_q *StudyEventQuery) loadCard(ctx context.Context, query *CardQuery, nodes []*StudyEvent, init func(*StudyEvent), assign func(*StudyEvent, *Card)) error {
 	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*NotebookCard)
+	nodeids := make(map[string][]*StudyEvent)
 	for i := range nodes {
-		if nodes[i].card_notebook_cards == nil {
+		if nodes[i].card_study_events == nil {
 			continue
 		}
-		fk := *nodes[i].card_notebook_cards
+		fk := *nodes[i].card_study_events
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -551,7 +594,7 @@ func (_q *NotebookCardQuery) loadCard(ctx context.Context, query *CardQuery, nod
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "card_notebook_cards" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "card_study_events" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -559,14 +602,46 @@ func (_q *NotebookCardQuery) loadCard(ctx context.Context, query *CardQuery, nod
 	}
 	return nil
 }
-func (_q *NotebookCardQuery) loadDeck(ctx context.Context, query *DeckQuery, nodes []*NotebookCard, init func(*NotebookCard), assign func(*NotebookCard, *Deck)) error {
+func (_q *StudyEventQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*StudyEvent, init func(*StudyEvent), assign func(*StudyEvent, *User)) error {
 	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*NotebookCard)
+	nodeids := make(map[string][]*StudyEvent)
 	for i := range nodes {
-		if nodes[i].deck_notebook_cards == nil {
+		if nodes[i].user_study_events == nil {
 			continue
 		}
-		fk := *nodes[i].deck_notebook_cards
+		fk := *nodes[i].user_study_events
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_study_events" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *StudyEventQuery) loadPreviousDeck(ctx context.Context, query *DeckQuery, nodes []*StudyEvent, init func(*StudyEvent), assign func(*StudyEvent, *Deck)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*StudyEvent)
+	for i := range nodes {
+		if nodes[i].deck_study_events == nil {
+			continue
+		}
+		fk := *nodes[i].deck_study_events
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -583,7 +658,7 @@ func (_q *NotebookCardQuery) loadDeck(ctx context.Context, query *DeckQuery, nod
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "deck_notebook_cards" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "deck_study_events" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -592,7 +667,7 @@ func (_q *NotebookCardQuery) loadDeck(ctx context.Context, query *DeckQuery, nod
 	return nil
 }
 
-func (_q *NotebookCardQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *StudyEventQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -601,8 +676,8 @@ func (_q *NotebookCardQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *NotebookCardQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(notebookcard.Table, notebookcard.Columns, sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString))
+func (_q *StudyEventQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(studyevent.Table, studyevent.Columns, sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -611,9 +686,9 @@ func (_q *NotebookCardQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, notebookcard.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, studyevent.FieldID)
 		for i := range fields {
-			if fields[i] != notebookcard.FieldID {
+			if fields[i] != studyevent.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -641,12 +716,12 @@ func (_q *NotebookCardQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *NotebookCardQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *StudyEventQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(notebookcard.Table)
+	t1 := builder.Table(studyevent.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = notebookcard.Columns
+		columns = studyevent.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -673,28 +748,28 @@ func (_q *NotebookCardQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// NotebookCardGroupBy is the group-by builder for NotebookCard entities.
-type NotebookCardGroupBy struct {
+// StudyEventGroupBy is the group-by builder for StudyEvent entities.
+type StudyEventGroupBy struct {
 	selector
-	build *NotebookCardQuery
+	build *StudyEventQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *NotebookCardGroupBy) Aggregate(fns ...AggregateFunc) *NotebookCardGroupBy {
+func (_g *StudyEventGroupBy) Aggregate(fns ...AggregateFunc) *StudyEventGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *NotebookCardGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *StudyEventGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*NotebookCardQuery, *NotebookCardGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*StudyEventQuery, *StudyEventGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *NotebookCardGroupBy) sqlScan(ctx context.Context, root *NotebookCardQuery, v any) error {
+func (_g *StudyEventGroupBy) sqlScan(ctx context.Context, root *StudyEventQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -721,28 +796,28 @@ func (_g *NotebookCardGroupBy) sqlScan(ctx context.Context, root *NotebookCardQu
 	return sql.ScanSlice(rows, v)
 }
 
-// NotebookCardSelect is the builder for selecting fields of NotebookCard entities.
-type NotebookCardSelect struct {
-	*NotebookCardQuery
+// StudyEventSelect is the builder for selecting fields of StudyEvent entities.
+type StudyEventSelect struct {
+	*StudyEventQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *NotebookCardSelect) Aggregate(fns ...AggregateFunc) *NotebookCardSelect {
+func (_s *StudyEventSelect) Aggregate(fns ...AggregateFunc) *StudyEventSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *NotebookCardSelect) Scan(ctx context.Context, v any) error {
+func (_s *StudyEventSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*NotebookCardQuery, *NotebookCardSelect](ctx, _s.NotebookCardQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*StudyEventQuery, *StudyEventSelect](ctx, _s.StudyEventQuery, _s, _s.inters, v)
 }
 
-func (_s *NotebookCardSelect) sqlScan(ctx context.Context, root *NotebookCardQuery, v any) error {
+func (_s *StudyEventSelect) sqlScan(ctx context.Context, root *StudyEventQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

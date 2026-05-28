@@ -10,32 +10,33 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
-// NotebookCreate is the builder for creating a Notebook entity.
-type NotebookCreate struct {
+// CollectionCreate is the builder for creating a Collection entity.
+type CollectionCreate struct {
 	config
-	mutation *NotebookMutation
+	mutation *CollectionMutation
 	hooks    []Hook
 }
 
 // SetName sets the "name" field.
-func (_c *NotebookCreate) SetName(v string) *NotebookCreate {
+func (_c *CollectionCreate) SetName(v string) *CollectionCreate {
 	_c.mutation.SetName(v)
 	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (_c *NotebookCreate) SetCreatedAt(v time.Time) *NotebookCreate {
+func (_c *CollectionCreate) SetCreatedAt(v time.Time) *CollectionCreate {
 	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (_c *NotebookCreate) SetNillableCreatedAt(v *time.Time) *NotebookCreate {
+func (_c *CollectionCreate) SetNillableCreatedAt(v *time.Time) *CollectionCreate {
 	if v != nil {
 		_c.SetCreatedAt(*v)
 	}
@@ -43,13 +44,13 @@ func (_c *NotebookCreate) SetNillableCreatedAt(v *time.Time) *NotebookCreate {
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_c *NotebookCreate) SetUpdatedAt(v time.Time) *NotebookCreate {
+func (_c *CollectionCreate) SetUpdatedAt(v time.Time) *CollectionCreate {
 	_c.mutation.SetUpdatedAt(v)
 	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *NotebookCreate) SetNillableUpdatedAt(v *time.Time) *NotebookCreate {
+func (_c *CollectionCreate) SetNillableUpdatedAt(v *time.Time) *CollectionCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
@@ -57,50 +58,65 @@ func (_c *NotebookCreate) SetNillableUpdatedAt(v *time.Time) *NotebookCreate {
 }
 
 // SetID sets the "id" field.
-func (_c *NotebookCreate) SetID(v string) *NotebookCreate {
+func (_c *CollectionCreate) SetID(v string) *CollectionCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
-func (_c *NotebookCreate) SetCreatorID(id string) *NotebookCreate {
+func (_c *CollectionCreate) SetCreatorID(id string) *CollectionCreate {
 	_c.mutation.SetCreatorID(id)
 	return _c
 }
 
 // SetCreator sets the "creator" edge to the User entity.
-func (_c *NotebookCreate) SetCreator(v *User) *NotebookCreate {
+func (_c *CollectionCreate) SetCreator(v *User) *CollectionCreate {
 	return _c.SetCreatorID(v.ID)
 }
 
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (_c *NotebookCreate) AddNotebookCardIDs(ids ...string) *NotebookCreate {
-	_c.mutation.AddNotebookCardIDs(ids...)
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by IDs.
+func (_c *CollectionCreate) AddCollectionCardIDs(ids ...string) *CollectionCreate {
+	_c.mutation.AddCollectionCardIDs(ids...)
 	return _c
 }
 
-// AddNotebookCards adds the "notebook_cards" edges to the NotebookCard entity.
-func (_c *NotebookCreate) AddNotebookCards(v ...*NotebookCard) *NotebookCreate {
+// AddCollectionCards adds the "collection_cards" edges to the CollectionCard entity.
+func (_c *CollectionCreate) AddCollectionCards(v ...*CollectionCard) *CollectionCreate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddNotebookCardIDs(ids...)
+	return _c.AddCollectionCardIDs(ids...)
 }
 
-// Mutation returns the NotebookMutation object of the builder.
-func (_c *NotebookCreate) Mutation() *NotebookMutation {
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
+func (_c *CollectionCreate) AddStudyEventIDs(ids ...string) *CollectionCreate {
+	_c.mutation.AddStudyEventIDs(ids...)
+	return _c
+}
+
+// AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
+func (_c *CollectionCreate) AddStudyEvents(v ...*StudyEvent) *CollectionCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStudyEventIDs(ids...)
+}
+
+// Mutation returns the CollectionMutation object of the builder.
+func (_c *CollectionCreate) Mutation() *CollectionMutation {
 	return _c.mutation
 }
 
-// Save creates the Notebook in the database.
-func (_c *NotebookCreate) Save(ctx context.Context) (*Notebook, error) {
+// Save creates the Collection in the database.
+func (_c *CollectionCreate) Save(ctx context.Context) (*Collection, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *NotebookCreate) SaveX(ctx context.Context) *Notebook {
+func (_c *CollectionCreate) SaveX(ctx context.Context) *Collection {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -109,53 +125,53 @@ func (_c *NotebookCreate) SaveX(ctx context.Context) *Notebook {
 }
 
 // Exec executes the query.
-func (_c *NotebookCreate) Exec(ctx context.Context) error {
+func (_c *CollectionCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *NotebookCreate) ExecX(ctx context.Context) {
+func (_c *CollectionCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *NotebookCreate) defaults() {
+func (_c *CollectionCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := notebook.DefaultCreatedAt()
+		v := collection.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := notebook.DefaultUpdatedAt()
+		v := collection.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *NotebookCreate) check() error {
+func (_c *CollectionCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Notebook.name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Collection.name"`)}
 	}
 	if v, ok := _c.mutation.Name(); ok {
-		if err := notebook.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Notebook.name": %w`, err)}
+		if err := collection.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Collection.name": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Notebook.created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Collection.created_at"`)}
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Notebook.updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Collection.updated_at"`)}
 	}
 	if len(_c.mutation.CreatorIDs()) == 0 {
-		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Notebook.creator"`)}
+		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Collection.creator"`)}
 	}
 	return nil
 }
 
-func (_c *NotebookCreate) sqlSave(ctx context.Context) (*Notebook, error) {
+func (_c *CollectionCreate) sqlSave(ctx context.Context) (*Collection, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -170,7 +186,7 @@ func (_c *NotebookCreate) sqlSave(ctx context.Context) (*Notebook, error) {
 		if id, ok := _spec.ID.Value.(string); ok {
 			_node.ID = id
 		} else {
-			return nil, fmt.Errorf("unexpected Notebook.ID type: %T", _spec.ID.Value)
+			return nil, fmt.Errorf("unexpected Collection.ID type: %T", _spec.ID.Value)
 		}
 	}
 	_c.mutation.id = &_node.ID
@@ -178,33 +194,33 @@ func (_c *NotebookCreate) sqlSave(ctx context.Context) (*Notebook, error) {
 	return _node, nil
 }
 
-func (_c *NotebookCreate) createSpec() (*Notebook, *sqlgraph.CreateSpec) {
+func (_c *CollectionCreate) createSpec() (*Collection, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Notebook{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(notebook.Table, sqlgraph.NewFieldSpec(notebook.FieldID, field.TypeString))
+		_node = &Collection{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(collection.Table, sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
 	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(notebook.FieldName, field.TypeString, value)
+		_spec.SetField(collection.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(notebook.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(collection.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(notebook.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(collection.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   notebook.CreatorTable,
-			Columns: []string{notebook.CreatorColumn},
+			Table:   collection.CreatorTable,
+			Columns: []string{collection.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -213,18 +229,34 @@ func (_c *NotebookCreate) createSpec() (*Notebook, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_notebooks = &nodes[0]
+		_node.user_collections = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.NotebookCardsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CollectionCardsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   notebook.NotebookCardsTable,
-			Columns: []string{notebook.NotebookCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StudyEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -235,27 +267,27 @@ func (_c *NotebookCreate) createSpec() (*Notebook, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
-// NotebookCreateBulk is the builder for creating many Notebook entities in bulk.
-type NotebookCreateBulk struct {
+// CollectionCreateBulk is the builder for creating many Collection entities in bulk.
+type CollectionCreateBulk struct {
 	config
 	err      error
-	builders []*NotebookCreate
+	builders []*CollectionCreate
 }
 
-// Save creates the Notebook entities in the database.
-func (_c *NotebookCreateBulk) Save(ctx context.Context) ([]*Notebook, error) {
+// Save creates the Collection entities in the database.
+func (_c *CollectionCreateBulk) Save(ctx context.Context) ([]*Collection, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*Notebook, len(_c.builders))
+	nodes := make([]*Collection, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*NotebookMutation)
+				mutation, ok := m.(*CollectionMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -298,7 +330,7 @@ func (_c *NotebookCreateBulk) Save(ctx context.Context) ([]*Notebook, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *NotebookCreateBulk) SaveX(ctx context.Context) []*Notebook {
+func (_c *CollectionCreateBulk) SaveX(ctx context.Context) []*Collection {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -307,13 +339,13 @@ func (_c *NotebookCreateBulk) SaveX(ctx context.Context) []*Notebook {
 }
 
 // Exec executes the query.
-func (_c *NotebookCreateBulk) Exec(ctx context.Context) error {
+func (_c *CollectionCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *NotebookCreateBulk) ExecX(ctx context.Context) {
+func (_c *CollectionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

@@ -37,11 +37,13 @@ type UserEdges struct {
 	Cards []*Card `json:"cards,omitempty"`
 	// Decks holds the value of the decks edge.
 	Decks []*Deck `json:"decks,omitempty"`
-	// Notebooks holds the value of the notebooks edge.
-	Notebooks []*Notebook `json:"notebooks,omitempty"`
+	// Collections holds the value of the collections edge.
+	Collections []*Collection `json:"collections,omitempty"`
+	// StudyEvents holds the value of the study_events edge.
+	StudyEvents []*StudyEvent `json:"study_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // CardsOrErr returns the Cards value or an error if the edge
@@ -62,13 +64,22 @@ func (e UserEdges) DecksOrErr() ([]*Deck, error) {
 	return nil, &NotLoadedError{edge: "decks"}
 }
 
-// NotebooksOrErr returns the Notebooks value or an error if the edge
+// CollectionsOrErr returns the Collections value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) NotebooksOrErr() ([]*Notebook, error) {
+func (e UserEdges) CollectionsOrErr() ([]*Collection, error) {
 	if e.loadedTypes[2] {
-		return e.Notebooks, nil
+		return e.Collections, nil
 	}
-	return nil, &NotLoadedError{edge: "notebooks"}
+	return nil, &NotLoadedError{edge: "collections"}
+}
+
+// StudyEventsOrErr returns the StudyEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) StudyEventsOrErr() ([]*StudyEvent, error) {
+	if e.loadedTypes[3] {
+		return e.StudyEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "study_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -148,9 +159,14 @@ func (_m *User) QueryDecks() *DeckQuery {
 	return NewUserClient(_m.config).QueryDecks(_m)
 }
 
-// QueryNotebooks queries the "notebooks" edge of the User entity.
-func (_m *User) QueryNotebooks() *NotebookQuery {
-	return NewUserClient(_m.config).QueryNotebooks(_m)
+// QueryCollections queries the "collections" edge of the User entity.
+func (_m *User) QueryCollections() *CollectionQuery {
+	return NewUserClient(_m.config).QueryCollections(_m)
+}
+
+// QueryStudyEvents queries the "study_events" edge of the User entity.
+func (_m *User) QueryStudyEvents() *StudyEventQuery {
+	return NewUserClient(_m.config).QueryStudyEvents(_m)
 }
 
 // Update returns a builder for updating this User.

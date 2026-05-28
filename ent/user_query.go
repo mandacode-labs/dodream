@@ -13,22 +13,24 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
 	"github.com/mandacode-labs/dodream/ent/predicate"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx           *QueryContext
-	order         []user.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.User
-	withCards     *CardQuery
-	withDecks     *DeckQuery
-	withNotebooks *NotebookQuery
+	ctx             *QueryContext
+	order           []user.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.User
+	withCards       *CardQuery
+	withDecks       *DeckQuery
+	withCollections *CollectionQuery
+	withStudyEvents *StudyEventQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -109,9 +111,9 @@ func (_q *UserQuery) QueryDecks() *DeckQuery {
 	return query
 }
 
-// QueryNotebooks chains the current query on the "notebooks" edge.
-func (_q *UserQuery) QueryNotebooks() *NotebookQuery {
-	query := (&NotebookClient{config: _q.config}).Query()
+// QueryCollections chains the current query on the "collections" edge.
+func (_q *UserQuery) QueryCollections() *CollectionQuery {
+	query := (&CollectionClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -122,8 +124,30 @@ func (_q *UserQuery) QueryNotebooks() *NotebookQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(notebook.Table, notebook.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.NotebooksTable, user.NotebooksColumn),
+			sqlgraph.To(collection.Table, collection.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CollectionsTable, user.CollectionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStudyEvents chains the current query on the "study_events" edge.
+func (_q *UserQuery) QueryStudyEvents() *StudyEventQuery {
+	query := (&StudyEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(studyevent.Table, studyevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.StudyEventsTable, user.StudyEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +342,15 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:        _q.config,
-		ctx:           _q.ctx.Clone(),
-		order:         append([]user.OrderOption{}, _q.order...),
-		inters:        append([]Interceptor{}, _q.inters...),
-		predicates:    append([]predicate.User{}, _q.predicates...),
-		withCards:     _q.withCards.Clone(),
-		withDecks:     _q.withDecks.Clone(),
-		withNotebooks: _q.withNotebooks.Clone(),
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]user.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.User{}, _q.predicates...),
+		withCards:       _q.withCards.Clone(),
+		withDecks:       _q.withDecks.Clone(),
+		withCollections: _q.withCollections.Clone(),
+		withStudyEvents: _q.withStudyEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -354,14 +379,25 @@ func (_q *UserQuery) WithDecks(opts ...func(*DeckQuery)) *UserQuery {
 	return _q
 }
 
-// WithNotebooks tells the query-builder to eager-load the nodes that are connected to
-// the "notebooks" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithNotebooks(opts ...func(*NotebookQuery)) *UserQuery {
-	query := (&NotebookClient{config: _q.config}).Query()
+// WithCollections tells the query-builder to eager-load the nodes that are connected to
+// the "collections" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCollections(opts ...func(*CollectionQuery)) *UserQuery {
+	query := (&CollectionClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withNotebooks = query
+	_q.withCollections = query
+	return _q
+}
+
+// WithStudyEvents tells the query-builder to eager-load the nodes that are connected to
+// the "study_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithStudyEvents(opts ...func(*StudyEventQuery)) *UserQuery {
+	query := (&StudyEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStudyEvents = query
 	return _q
 }
 
@@ -443,10 +479,11 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withCards != nil,
 			_q.withDecks != nil,
-			_q.withNotebooks != nil,
+			_q.withCollections != nil,
+			_q.withStudyEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -481,10 +518,17 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := _q.withNotebooks; query != nil {
-		if err := _q.loadNotebooks(ctx, query, nodes,
-			func(n *User) { n.Edges.Notebooks = []*Notebook{} },
-			func(n *User, e *Notebook) { n.Edges.Notebooks = append(n.Edges.Notebooks, e) }); err != nil {
+	if query := _q.withCollections; query != nil {
+		if err := _q.loadCollections(ctx, query, nodes,
+			func(n *User) { n.Edges.Collections = []*Collection{} },
+			func(n *User, e *Collection) { n.Edges.Collections = append(n.Edges.Collections, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStudyEvents; query != nil {
+		if err := _q.loadStudyEvents(ctx, query, nodes,
+			func(n *User) { n.Edges.StudyEvents = []*StudyEvent{} },
+			func(n *User, e *StudyEvent) { n.Edges.StudyEvents = append(n.Edges.StudyEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -553,7 +597,7 @@ func (_q *UserQuery) loadDecks(ctx context.Context, query *DeckQuery, nodes []*U
 	}
 	return nil
 }
-func (_q *UserQuery) loadNotebooks(ctx context.Context, query *NotebookQuery, nodes []*User, init func(*User), assign func(*User, *Notebook)) error {
+func (_q *UserQuery) loadCollections(ctx context.Context, query *CollectionQuery, nodes []*User, init func(*User), assign func(*User, *Collection)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[string]*User)
 	for i := range nodes {
@@ -564,21 +608,52 @@ func (_q *UserQuery) loadNotebooks(ctx context.Context, query *NotebookQuery, no
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.Notebook(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.NotebooksColumn), fks...))
+	query.Where(predicate.Collection(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CollectionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_notebooks
+		fk := n.user_collections
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_notebooks" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_collections" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_notebooks" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_collections" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadStudyEvents(ctx context.Context, query *StudyEventQuery, nodes []*User, init func(*User), assign func(*User, *StudyEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.StudyEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.StudyEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_study_events
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_study_events" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_study_events" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

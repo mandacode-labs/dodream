@@ -11,8 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -103,19 +104,34 @@ func (_c *CardCreate) AddDecks(v ...*Deck) *CardCreate {
 	return _c.AddDeckIDs(ids...)
 }
 
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (_c *CardCreate) AddNotebookCardIDs(ids ...string) *CardCreate {
-	_c.mutation.AddNotebookCardIDs(ids...)
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by IDs.
+func (_c *CardCreate) AddCollectionCardIDs(ids ...string) *CardCreate {
+	_c.mutation.AddCollectionCardIDs(ids...)
 	return _c
 }
 
-// AddNotebookCards adds the "notebook_cards" edges to the NotebookCard entity.
-func (_c *CardCreate) AddNotebookCards(v ...*NotebookCard) *CardCreate {
+// AddCollectionCards adds the "collection_cards" edges to the CollectionCard entity.
+func (_c *CardCreate) AddCollectionCards(v ...*CollectionCard) *CardCreate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddNotebookCardIDs(ids...)
+	return _c.AddCollectionCardIDs(ids...)
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
+func (_c *CardCreate) AddStudyEventIDs(ids ...string) *CardCreate {
+	_c.mutation.AddStudyEventIDs(ids...)
+	return _c
+}
+
+// AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
+func (_c *CardCreate) AddStudyEvents(v ...*StudyEvent) *CardCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStudyEventIDs(ids...)
 }
 
 // Mutation returns the CardMutation object of the builder.
@@ -266,15 +282,31 @@ func (_c *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.NotebookCardsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CollectionCardsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.NotebookCardsTable,
-			Columns: []string{card.NotebookCardsColumn},
+			Table:   card.CollectionCardsTable,
+			Columns: []string{card.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StudyEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.StudyEventsTable,
+			Columns: []string{card.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

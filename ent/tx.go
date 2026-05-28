@@ -14,12 +14,14 @@ type Tx struct {
 	config
 	// Card is the client for interacting with the Card builders.
 	Card *CardClient
+	// Collection is the client for interacting with the Collection builders.
+	Collection *CollectionClient
+	// CollectionCard is the client for interacting with the CollectionCard builders.
+	CollectionCard *CollectionCardClient
 	// Deck is the client for interacting with the Deck builders.
 	Deck *DeckClient
-	// Notebook is the client for interacting with the Notebook builders.
-	Notebook *NotebookClient
-	// NotebookCard is the client for interacting with the NotebookCard builders.
-	NotebookCard *NotebookCardClient
+	// StudyEvent is the client for interacting with the StudyEvent builders.
+	StudyEvent *StudyEventClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -154,9 +156,10 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Card = NewCardClient(tx.config)
+	tx.Collection = NewCollectionClient(tx.config)
+	tx.CollectionCard = NewCollectionCardClient(tx.config)
 	tx.Deck = NewDeckClient(tx.config)
-	tx.Notebook = NewNotebookClient(tx.config)
-	tx.NotebookCard = NewNotebookCardClient(tx.config)
+	tx.StudyEvent = NewStudyEventClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

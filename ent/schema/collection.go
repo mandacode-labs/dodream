@@ -8,13 +8,13 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Notebook holds the schema definition for the Notebook entity.
-type Notebook struct {
+// Collection holds the schema definition for the Collection entity.
+type Collection struct {
 	ent.Schema
 }
 
-// Fields of the Notebook.
-func (Notebook) Fields() []ent.Field {
+// Fields of the Collection.
+func (Collection) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").Unique().Immutable(),
 		field.String("name").NotEmpty(),
@@ -23,13 +23,14 @@ func (Notebook) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Notebook.
-func (Notebook) Edges() []ent.Edge {
+// Edges of the Collection.
+func (Collection) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("creator", User.Type).
-			Ref("notebooks").
+			Ref("collections").
 			Unique().
 			Required(),
-		edge.To("notebook_cards", NotebookCard.Type),
+		edge.To("collection_cards", CollectionCard.Type),
+		edge.To("study_events", StudyEvent.Type),
 	}
 }

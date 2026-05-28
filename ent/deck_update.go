@@ -12,9 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
 	"github.com/mandacode-labs/dodream/ent/predicate"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -77,19 +78,34 @@ func (_u *DeckUpdate) AddCards(v ...*Card) *DeckUpdate {
 	return _u.AddCardIDs(ids...)
 }
 
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (_u *DeckUpdate) AddNotebookCardIDs(ids ...string) *DeckUpdate {
-	_u.mutation.AddNotebookCardIDs(ids...)
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by IDs.
+func (_u *DeckUpdate) AddCollectionCardIDs(ids ...string) *DeckUpdate {
+	_u.mutation.AddCollectionCardIDs(ids...)
 	return _u
 }
 
-// AddNotebookCards adds the "notebook_cards" edges to the NotebookCard entity.
-func (_u *DeckUpdate) AddNotebookCards(v ...*NotebookCard) *DeckUpdate {
+// AddCollectionCards adds the "collection_cards" edges to the CollectionCard entity.
+func (_u *DeckUpdate) AddCollectionCards(v ...*CollectionCard) *DeckUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddNotebookCardIDs(ids...)
+	return _u.AddCollectionCardIDs(ids...)
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
+func (_u *DeckUpdate) AddStudyEventIDs(ids ...string) *DeckUpdate {
+	_u.mutation.AddStudyEventIDs(ids...)
+	return _u
+}
+
+// AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
+func (_u *DeckUpdate) AddStudyEvents(v ...*StudyEvent) *DeckUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStudyEventIDs(ids...)
 }
 
 // Mutation returns the DeckMutation object of the builder.
@@ -124,25 +140,46 @@ func (_u *DeckUpdate) RemoveCards(v ...*Card) *DeckUpdate {
 	return _u.RemoveCardIDs(ids...)
 }
 
-// ClearNotebookCards clears all "notebook_cards" edges to the NotebookCard entity.
-func (_u *DeckUpdate) ClearNotebookCards() *DeckUpdate {
-	_u.mutation.ClearNotebookCards()
+// ClearCollectionCards clears all "collection_cards" edges to the CollectionCard entity.
+func (_u *DeckUpdate) ClearCollectionCards() *DeckUpdate {
+	_u.mutation.ClearCollectionCards()
 	return _u
 }
 
-// RemoveNotebookCardIDs removes the "notebook_cards" edge to NotebookCard entities by IDs.
-func (_u *DeckUpdate) RemoveNotebookCardIDs(ids ...string) *DeckUpdate {
-	_u.mutation.RemoveNotebookCardIDs(ids...)
+// RemoveCollectionCardIDs removes the "collection_cards" edge to CollectionCard entities by IDs.
+func (_u *DeckUpdate) RemoveCollectionCardIDs(ids ...string) *DeckUpdate {
+	_u.mutation.RemoveCollectionCardIDs(ids...)
 	return _u
 }
 
-// RemoveNotebookCards removes "notebook_cards" edges to NotebookCard entities.
-func (_u *DeckUpdate) RemoveNotebookCards(v ...*NotebookCard) *DeckUpdate {
+// RemoveCollectionCards removes "collection_cards" edges to CollectionCard entities.
+func (_u *DeckUpdate) RemoveCollectionCards(v ...*CollectionCard) *DeckUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveNotebookCardIDs(ids...)
+	return _u.RemoveCollectionCardIDs(ids...)
+}
+
+// ClearStudyEvents clears all "study_events" edges to the StudyEvent entity.
+func (_u *DeckUpdate) ClearStudyEvents() *DeckUpdate {
+	_u.mutation.ClearStudyEvents()
+	return _u
+}
+
+// RemoveStudyEventIDs removes the "study_events" edge to StudyEvent entities by IDs.
+func (_u *DeckUpdate) RemoveStudyEventIDs(ids ...string) *DeckUpdate {
+	_u.mutation.RemoveStudyEventIDs(ids...)
+	return _u
+}
+
+// RemoveStudyEvents removes "study_events" edges to StudyEvent entities.
+func (_u *DeckUpdate) RemoveStudyEvents(v ...*StudyEvent) *DeckUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStudyEventIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -286,28 +323,28 @@ func (_u *DeckUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.NotebookCardsCleared() {
+	if _u.mutation.CollectionCardsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   deck.NotebookCardsTable,
-			Columns: []string{deck.NotebookCardsColumn},
+			Table:   deck.CollectionCardsTable,
+			Columns: []string{deck.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedNotebookCardsIDs(); len(nodes) > 0 && !_u.mutation.NotebookCardsCleared() {
+	if nodes := _u.mutation.RemovedCollectionCardsIDs(); len(nodes) > 0 && !_u.mutation.CollectionCardsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   deck.NotebookCardsTable,
-			Columns: []string{deck.NotebookCardsColumn},
+			Table:   deck.CollectionCardsTable,
+			Columns: []string{deck.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -315,15 +352,60 @@ func (_u *DeckUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.NotebookCardsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.CollectionCardsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   deck.NotebookCardsTable,
-			Columns: []string{deck.NotebookCardsColumn},
+			Table:   deck.CollectionCardsTable,
+			Columns: []string{deck.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StudyEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deck.StudyEventsTable,
+			Columns: []string{deck.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStudyEventsIDs(); len(nodes) > 0 && !_u.mutation.StudyEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deck.StudyEventsTable,
+			Columns: []string{deck.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StudyEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deck.StudyEventsTable,
+			Columns: []string{deck.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -397,19 +479,34 @@ func (_u *DeckUpdateOne) AddCards(v ...*Card) *DeckUpdateOne {
 	return _u.AddCardIDs(ids...)
 }
 
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (_u *DeckUpdateOne) AddNotebookCardIDs(ids ...string) *DeckUpdateOne {
-	_u.mutation.AddNotebookCardIDs(ids...)
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by IDs.
+func (_u *DeckUpdateOne) AddCollectionCardIDs(ids ...string) *DeckUpdateOne {
+	_u.mutation.AddCollectionCardIDs(ids...)
 	return _u
 }
 
-// AddNotebookCards adds the "notebook_cards" edges to the NotebookCard entity.
-func (_u *DeckUpdateOne) AddNotebookCards(v ...*NotebookCard) *DeckUpdateOne {
+// AddCollectionCards adds the "collection_cards" edges to the CollectionCard entity.
+func (_u *DeckUpdateOne) AddCollectionCards(v ...*CollectionCard) *DeckUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddNotebookCardIDs(ids...)
+	return _u.AddCollectionCardIDs(ids...)
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
+func (_u *DeckUpdateOne) AddStudyEventIDs(ids ...string) *DeckUpdateOne {
+	_u.mutation.AddStudyEventIDs(ids...)
+	return _u
+}
+
+// AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
+func (_u *DeckUpdateOne) AddStudyEvents(v ...*StudyEvent) *DeckUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStudyEventIDs(ids...)
 }
 
 // Mutation returns the DeckMutation object of the builder.
@@ -444,25 +541,46 @@ func (_u *DeckUpdateOne) RemoveCards(v ...*Card) *DeckUpdateOne {
 	return _u.RemoveCardIDs(ids...)
 }
 
-// ClearNotebookCards clears all "notebook_cards" edges to the NotebookCard entity.
-func (_u *DeckUpdateOne) ClearNotebookCards() *DeckUpdateOne {
-	_u.mutation.ClearNotebookCards()
+// ClearCollectionCards clears all "collection_cards" edges to the CollectionCard entity.
+func (_u *DeckUpdateOne) ClearCollectionCards() *DeckUpdateOne {
+	_u.mutation.ClearCollectionCards()
 	return _u
 }
 
-// RemoveNotebookCardIDs removes the "notebook_cards" edge to NotebookCard entities by IDs.
-func (_u *DeckUpdateOne) RemoveNotebookCardIDs(ids ...string) *DeckUpdateOne {
-	_u.mutation.RemoveNotebookCardIDs(ids...)
+// RemoveCollectionCardIDs removes the "collection_cards" edge to CollectionCard entities by IDs.
+func (_u *DeckUpdateOne) RemoveCollectionCardIDs(ids ...string) *DeckUpdateOne {
+	_u.mutation.RemoveCollectionCardIDs(ids...)
 	return _u
 }
 
-// RemoveNotebookCards removes "notebook_cards" edges to NotebookCard entities.
-func (_u *DeckUpdateOne) RemoveNotebookCards(v ...*NotebookCard) *DeckUpdateOne {
+// RemoveCollectionCards removes "collection_cards" edges to CollectionCard entities.
+func (_u *DeckUpdateOne) RemoveCollectionCards(v ...*CollectionCard) *DeckUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveNotebookCardIDs(ids...)
+	return _u.RemoveCollectionCardIDs(ids...)
+}
+
+// ClearStudyEvents clears all "study_events" edges to the StudyEvent entity.
+func (_u *DeckUpdateOne) ClearStudyEvents() *DeckUpdateOne {
+	_u.mutation.ClearStudyEvents()
+	return _u
+}
+
+// RemoveStudyEventIDs removes the "study_events" edge to StudyEvent entities by IDs.
+func (_u *DeckUpdateOne) RemoveStudyEventIDs(ids ...string) *DeckUpdateOne {
+	_u.mutation.RemoveStudyEventIDs(ids...)
+	return _u
+}
+
+// RemoveStudyEvents removes "study_events" edges to StudyEvent entities.
+func (_u *DeckUpdateOne) RemoveStudyEvents(v ...*StudyEvent) *DeckUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStudyEventIDs(ids...)
 }
 
 // Where appends a list predicates to the DeckUpdate builder.
@@ -636,28 +754,28 @@ func (_u *DeckUpdateOne) sqlSave(ctx context.Context) (_node *Deck, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.NotebookCardsCleared() {
+	if _u.mutation.CollectionCardsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   deck.NotebookCardsTable,
-			Columns: []string{deck.NotebookCardsColumn},
+			Table:   deck.CollectionCardsTable,
+			Columns: []string{deck.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedNotebookCardsIDs(); len(nodes) > 0 && !_u.mutation.NotebookCardsCleared() {
+	if nodes := _u.mutation.RemovedCollectionCardsIDs(); len(nodes) > 0 && !_u.mutation.CollectionCardsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   deck.NotebookCardsTable,
-			Columns: []string{deck.NotebookCardsColumn},
+			Table:   deck.CollectionCardsTable,
+			Columns: []string{deck.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -665,15 +783,60 @@ func (_u *DeckUpdateOne) sqlSave(ctx context.Context) (_node *Deck, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.NotebookCardsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.CollectionCardsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   deck.NotebookCardsTable,
-			Columns: []string{deck.NotebookCardsColumn},
+			Table:   deck.CollectionCardsTable,
+			Columns: []string{deck.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebookcard.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StudyEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deck.StudyEventsTable,
+			Columns: []string{deck.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStudyEventsIDs(); len(nodes) > 0 && !_u.mutation.StudyEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deck.StudyEventsTable,
+			Columns: []string{deck.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StudyEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   deck.StudyEventsTable,
+			Columns: []string{deck.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -13,9 +13,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -77,11 +78,12 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			card.Table:         card.ValidColumn,
-			deck.Table:         deck.ValidColumn,
-			notebook.Table:     notebook.ValidColumn,
-			notebookcard.Table: notebookcard.ValidColumn,
-			user.Table:         user.ValidColumn,
+			card.Table:           card.ValidColumn,
+			collection.Table:     collection.ValidColumn,
+			collectioncard.Table: collectioncard.ValidColumn,
+			deck.Table:           deck.ValidColumn,
+			studyevent.Table:     studyevent.ValidColumn,
+			user.Table:           user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

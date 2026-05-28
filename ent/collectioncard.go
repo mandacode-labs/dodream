@@ -10,13 +10,13 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
 )
 
-// NotebookCard is the model entity for the NotebookCard schema.
-type NotebookCard struct {
+// CollectionCard is the model entity for the CollectionCard schema.
+type CollectionCard struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
@@ -25,18 +25,18 @@ type NotebookCard struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the NotebookCardQuery when eager-loading is set.
-	Edges                   NotebookCardEdges `json:"edges"`
-	card_notebook_cards     *string
-	deck_notebook_cards     *string
-	notebook_notebook_cards *string
-	selectValues            sql.SelectValues
+	// The values are being populated by the CollectionCardQuery when eager-loading is set.
+	Edges                       CollectionCardEdges `json:"edges"`
+	card_collection_cards       *string
+	collection_collection_cards *string
+	deck_collection_cards       *string
+	selectValues                sql.SelectValues
 }
 
-// NotebookCardEdges holds the relations/edges for other nodes in the graph.
-type NotebookCardEdges struct {
-	// Notebook holds the value of the notebook edge.
-	Notebook *Notebook `json:"notebook,omitempty"`
+// CollectionCardEdges holds the relations/edges for other nodes in the graph.
+type CollectionCardEdges struct {
+	// Collection holds the value of the collection edge.
+	Collection *Collection `json:"collection,omitempty"`
 	// Card holds the value of the card edge.
 	Card *Card `json:"card,omitempty"`
 	// Deck holds the value of the deck edge.
@@ -46,20 +46,20 @@ type NotebookCardEdges struct {
 	loadedTypes [3]bool
 }
 
-// NotebookOrErr returns the Notebook value or an error if the edge
+// CollectionOrErr returns the Collection value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e NotebookCardEdges) NotebookOrErr() (*Notebook, error) {
-	if e.Notebook != nil {
-		return e.Notebook, nil
+func (e CollectionCardEdges) CollectionOrErr() (*Collection, error) {
+	if e.Collection != nil {
+		return e.Collection, nil
 	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: notebook.Label}
+		return nil, &NotFoundError{label: collection.Label}
 	}
-	return nil, &NotLoadedError{edge: "notebook"}
+	return nil, &NotLoadedError{edge: "collection"}
 }
 
 // CardOrErr returns the Card value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e NotebookCardEdges) CardOrErr() (*Card, error) {
+func (e CollectionCardEdges) CardOrErr() (*Card, error) {
 	if e.Card != nil {
 		return e.Card, nil
 	} else if e.loadedTypes[1] {
@@ -70,7 +70,7 @@ func (e NotebookCardEdges) CardOrErr() (*Card, error) {
 
 // DeckOrErr returns the Deck value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e NotebookCardEdges) DeckOrErr() (*Deck, error) {
+func (e CollectionCardEdges) DeckOrErr() (*Deck, error) {
 	if e.Deck != nil {
 		return e.Deck, nil
 	} else if e.loadedTypes[2] {
@@ -80,19 +80,19 @@ func (e NotebookCardEdges) DeckOrErr() (*Deck, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*NotebookCard) scanValues(columns []string) ([]any, error) {
+func (*CollectionCard) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notebookcard.FieldID:
+		case collectioncard.FieldID:
 			values[i] = new(sql.NullString)
-		case notebookcard.FieldCreatedAt, notebookcard.FieldUpdatedAt:
+		case collectioncard.FieldCreatedAt, collectioncard.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case notebookcard.ForeignKeys[0]: // card_notebook_cards
+		case collectioncard.ForeignKeys[0]: // card_collection_cards
 			values[i] = new(sql.NullString)
-		case notebookcard.ForeignKeys[1]: // deck_notebook_cards
+		case collectioncard.ForeignKeys[1]: // collection_collection_cards
 			values[i] = new(sql.NullString)
-		case notebookcard.ForeignKeys[2]: // notebook_notebook_cards
+		case collectioncard.ForeignKeys[2]: // deck_collection_cards
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -102,51 +102,51 @@ func (*NotebookCard) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the NotebookCard fields.
-func (_m *NotebookCard) assignValues(columns []string, values []any) error {
+// to the CollectionCard fields.
+func (_m *CollectionCard) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case notebookcard.FieldID:
+		case collectioncard.FieldID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
 			}
-		case notebookcard.FieldCreatedAt:
+		case collectioncard.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case notebookcard.FieldUpdatedAt:
+		case collectioncard.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case notebookcard.ForeignKeys[0]:
+		case collectioncard.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field card_notebook_cards", values[i])
+				return fmt.Errorf("unexpected type %T for field card_collection_cards", values[i])
 			} else if value.Valid {
-				_m.card_notebook_cards = new(string)
-				*_m.card_notebook_cards = value.String
+				_m.card_collection_cards = new(string)
+				*_m.card_collection_cards = value.String
 			}
-		case notebookcard.ForeignKeys[1]:
+		case collectioncard.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field deck_notebook_cards", values[i])
+				return fmt.Errorf("unexpected type %T for field collection_collection_cards", values[i])
 			} else if value.Valid {
-				_m.deck_notebook_cards = new(string)
-				*_m.deck_notebook_cards = value.String
+				_m.collection_collection_cards = new(string)
+				*_m.collection_collection_cards = value.String
 			}
-		case notebookcard.ForeignKeys[2]:
+		case collectioncard.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field notebook_notebook_cards", values[i])
+				return fmt.Errorf("unexpected type %T for field deck_collection_cards", values[i])
 			} else if value.Valid {
-				_m.notebook_notebook_cards = new(string)
-				*_m.notebook_notebook_cards = value.String
+				_m.deck_collection_cards = new(string)
+				*_m.deck_collection_cards = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -155,49 +155,49 @@ func (_m *NotebookCard) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the NotebookCard.
+// Value returns the ent.Value that was dynamically selected and assigned to the CollectionCard.
 // This includes values selected through modifiers, order, etc.
-func (_m *NotebookCard) Value(name string) (ent.Value, error) {
+func (_m *CollectionCard) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryNotebook queries the "notebook" edge of the NotebookCard entity.
-func (_m *NotebookCard) QueryNotebook() *NotebookQuery {
-	return NewNotebookCardClient(_m.config).QueryNotebook(_m)
+// QueryCollection queries the "collection" edge of the CollectionCard entity.
+func (_m *CollectionCard) QueryCollection() *CollectionQuery {
+	return NewCollectionCardClient(_m.config).QueryCollection(_m)
 }
 
-// QueryCard queries the "card" edge of the NotebookCard entity.
-func (_m *NotebookCard) QueryCard() *CardQuery {
-	return NewNotebookCardClient(_m.config).QueryCard(_m)
+// QueryCard queries the "card" edge of the CollectionCard entity.
+func (_m *CollectionCard) QueryCard() *CardQuery {
+	return NewCollectionCardClient(_m.config).QueryCard(_m)
 }
 
-// QueryDeck queries the "deck" edge of the NotebookCard entity.
-func (_m *NotebookCard) QueryDeck() *DeckQuery {
-	return NewNotebookCardClient(_m.config).QueryDeck(_m)
+// QueryDeck queries the "deck" edge of the CollectionCard entity.
+func (_m *CollectionCard) QueryDeck() *DeckQuery {
+	return NewCollectionCardClient(_m.config).QueryDeck(_m)
 }
 
-// Update returns a builder for updating this NotebookCard.
-// Note that you need to call NotebookCard.Unwrap() before calling this method if this NotebookCard
+// Update returns a builder for updating this CollectionCard.
+// Note that you need to call CollectionCard.Unwrap() before calling this method if this CollectionCard
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *NotebookCard) Update() *NotebookCardUpdateOne {
-	return NewNotebookCardClient(_m.config).UpdateOne(_m)
+func (_m *CollectionCard) Update() *CollectionCardUpdateOne {
+	return NewCollectionCardClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the NotebookCard entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the CollectionCard entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *NotebookCard) Unwrap() *NotebookCard {
+func (_m *CollectionCard) Unwrap() *CollectionCard {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: NotebookCard is not a transactional entity")
+		panic("ent: CollectionCard is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *NotebookCard) String() string {
+func (_m *CollectionCard) String() string {
 	var builder strings.Builder
-	builder.WriteString("NotebookCard(")
+	builder.WriteString("CollectionCard(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
@@ -208,5 +208,5 @@ func (_m *NotebookCard) String() string {
 	return builder.String()
 }
 
-// NotebookCards is a parsable slice of NotebookCard.
-type NotebookCards []*NotebookCard
+// CollectionCards is a parsable slice of CollectionCard.
+type CollectionCards []*CollectionCard

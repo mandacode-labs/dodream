@@ -8,13 +8,13 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// NotebookCard holds the schema definition for the NotebookCard entity.
-type NotebookCard struct {
+// CollectionCard holds the schema definition for the CollectionCard entity.
+type CollectionCard struct {
 	ent.Schema
 }
 
-// Fields of the NotebookCard.
-func (NotebookCard) Fields() []ent.Field {
+// Fields of the CollectionCard.
+func (CollectionCard) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").Unique().Immutable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -22,19 +22,19 @@ func (NotebookCard) Fields() []ent.Field {
 	}
 }
 
-// Edges of the NotebookCard.
-func (NotebookCard) Edges() []ent.Edge {
+// Edges of the CollectionCard.
+func (CollectionCard) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("notebook", Notebook.Type).
-			Ref("notebook_cards").
+		edge.From("collection", Collection.Type).
+			Ref("collection_cards").
 			Unique().
 			Required(),
 		edge.From("card", Card.Type).
-			Ref("notebook_cards").
+			Ref("collection_cards").
 			Unique().
 			Required(),
 		edge.From("deck", Deck.Type).
-			Ref("notebook_cards").
+			Ref("collection_cards").
 			Unique(),
 	}
 }

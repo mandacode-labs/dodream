@@ -11,101 +11,65 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/collectioncard"
-	"github.com/mandacode-labs/dodream/ent/deck"
 	"github.com/mandacode-labs/dodream/ent/predicate"
 	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
-// CardUpdate is the builder for updating Card entities.
-type CardUpdate struct {
+// CollectionUpdate is the builder for updating Collection entities.
+type CollectionUpdate struct {
 	config
 	hooks    []Hook
-	mutation *CardMutation
+	mutation *CollectionMutation
 }
 
-// Where appends a list predicates to the CardUpdate builder.
-func (_u *CardUpdate) Where(ps ...predicate.Card) *CardUpdate {
+// Where appends a list predicates to the CollectionUpdate builder.
+func (_u *CollectionUpdate) Where(ps ...predicate.Collection) *CollectionUpdate {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
-// SetHint sets the "hint" field.
-func (_u *CardUpdate) SetHint(v string) *CardUpdate {
-	_u.mutation.SetHint(v)
+// SetName sets the "name" field.
+func (_u *CollectionUpdate) SetName(v string) *CollectionUpdate {
+	_u.mutation.SetName(v)
 	return _u
 }
 
-// SetNillableHint sets the "hint" field if the given value is not nil.
-func (_u *CardUpdate) SetNillableHint(v *string) *CardUpdate {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *CollectionUpdate) SetNillableName(v *string) *CollectionUpdate {
 	if v != nil {
-		_u.SetHint(*v)
-	}
-	return _u
-}
-
-// ClearHint clears the value of the "hint" field.
-func (_u *CardUpdate) ClearHint() *CardUpdate {
-	_u.mutation.ClearHint()
-	return _u
-}
-
-// SetContent sets the "content" field.
-func (_u *CardUpdate) SetContent(v string) *CardUpdate {
-	_u.mutation.SetContent(v)
-	return _u
-}
-
-// SetNillableContent sets the "content" field if the given value is not nil.
-func (_u *CardUpdate) SetNillableContent(v *string) *CardUpdate {
-	if v != nil {
-		_u.SetContent(*v)
+		_u.SetName(*v)
 	}
 	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_u *CardUpdate) SetUpdatedAt(v time.Time) *CardUpdate {
+func (_u *CollectionUpdate) SetUpdatedAt(v time.Time) *CollectionUpdate {
 	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
-func (_u *CardUpdate) SetCreatorID(id string) *CardUpdate {
+func (_u *CollectionUpdate) SetCreatorID(id string) *CollectionUpdate {
 	_u.mutation.SetCreatorID(id)
 	return _u
 }
 
 // SetCreator sets the "creator" edge to the User entity.
-func (_u *CardUpdate) SetCreator(v *User) *CardUpdate {
+func (_u *CollectionUpdate) SetCreator(v *User) *CollectionUpdate {
 	return _u.SetCreatorID(v.ID)
 }
 
-// AddDeckIDs adds the "decks" edge to the Deck entity by IDs.
-func (_u *CardUpdate) AddDeckIDs(ids ...string) *CardUpdate {
-	_u.mutation.AddDeckIDs(ids...)
-	return _u
-}
-
-// AddDecks adds the "decks" edges to the Deck entity.
-func (_u *CardUpdate) AddDecks(v ...*Deck) *CardUpdate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddDeckIDs(ids...)
-}
-
 // AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by IDs.
-func (_u *CardUpdate) AddCollectionCardIDs(ids ...string) *CardUpdate {
+func (_u *CollectionUpdate) AddCollectionCardIDs(ids ...string) *CollectionUpdate {
 	_u.mutation.AddCollectionCardIDs(ids...)
 	return _u
 }
 
 // AddCollectionCards adds the "collection_cards" edges to the CollectionCard entity.
-func (_u *CardUpdate) AddCollectionCards(v ...*CollectionCard) *CardUpdate {
+func (_u *CollectionUpdate) AddCollectionCards(v ...*CollectionCard) *CollectionUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -114,13 +78,13 @@ func (_u *CardUpdate) AddCollectionCards(v ...*CollectionCard) *CardUpdate {
 }
 
 // AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
-func (_u *CardUpdate) AddStudyEventIDs(ids ...string) *CardUpdate {
+func (_u *CollectionUpdate) AddStudyEventIDs(ids ...string) *CollectionUpdate {
 	_u.mutation.AddStudyEventIDs(ids...)
 	return _u
 }
 
 // AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
-func (_u *CardUpdate) AddStudyEvents(v ...*StudyEvent) *CardUpdate {
+func (_u *CollectionUpdate) AddStudyEvents(v ...*StudyEvent) *CollectionUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -128,52 +92,31 @@ func (_u *CardUpdate) AddStudyEvents(v ...*StudyEvent) *CardUpdate {
 	return _u.AddStudyEventIDs(ids...)
 }
 
-// Mutation returns the CardMutation object of the builder.
-func (_u *CardUpdate) Mutation() *CardMutation {
+// Mutation returns the CollectionMutation object of the builder.
+func (_u *CollectionUpdate) Mutation() *CollectionMutation {
 	return _u.mutation
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
-func (_u *CardUpdate) ClearCreator() *CardUpdate {
+func (_u *CollectionUpdate) ClearCreator() *CollectionUpdate {
 	_u.mutation.ClearCreator()
 	return _u
 }
 
-// ClearDecks clears all "decks" edges to the Deck entity.
-func (_u *CardUpdate) ClearDecks() *CardUpdate {
-	_u.mutation.ClearDecks()
-	return _u
-}
-
-// RemoveDeckIDs removes the "decks" edge to Deck entities by IDs.
-func (_u *CardUpdate) RemoveDeckIDs(ids ...string) *CardUpdate {
-	_u.mutation.RemoveDeckIDs(ids...)
-	return _u
-}
-
-// RemoveDecks removes "decks" edges to Deck entities.
-func (_u *CardUpdate) RemoveDecks(v ...*Deck) *CardUpdate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveDeckIDs(ids...)
-}
-
 // ClearCollectionCards clears all "collection_cards" edges to the CollectionCard entity.
-func (_u *CardUpdate) ClearCollectionCards() *CardUpdate {
+func (_u *CollectionUpdate) ClearCollectionCards() *CollectionUpdate {
 	_u.mutation.ClearCollectionCards()
 	return _u
 }
 
 // RemoveCollectionCardIDs removes the "collection_cards" edge to CollectionCard entities by IDs.
-func (_u *CardUpdate) RemoveCollectionCardIDs(ids ...string) *CardUpdate {
+func (_u *CollectionUpdate) RemoveCollectionCardIDs(ids ...string) *CollectionUpdate {
 	_u.mutation.RemoveCollectionCardIDs(ids...)
 	return _u
 }
 
 // RemoveCollectionCards removes "collection_cards" edges to CollectionCard entities.
-func (_u *CardUpdate) RemoveCollectionCards(v ...*CollectionCard) *CardUpdate {
+func (_u *CollectionUpdate) RemoveCollectionCards(v ...*CollectionCard) *CollectionUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -182,19 +125,19 @@ func (_u *CardUpdate) RemoveCollectionCards(v ...*CollectionCard) *CardUpdate {
 }
 
 // ClearStudyEvents clears all "study_events" edges to the StudyEvent entity.
-func (_u *CardUpdate) ClearStudyEvents() *CardUpdate {
+func (_u *CollectionUpdate) ClearStudyEvents() *CollectionUpdate {
 	_u.mutation.ClearStudyEvents()
 	return _u
 }
 
 // RemoveStudyEventIDs removes the "study_events" edge to StudyEvent entities by IDs.
-func (_u *CardUpdate) RemoveStudyEventIDs(ids ...string) *CardUpdate {
+func (_u *CollectionUpdate) RemoveStudyEventIDs(ids ...string) *CollectionUpdate {
 	_u.mutation.RemoveStudyEventIDs(ids...)
 	return _u
 }
 
 // RemoveStudyEvents removes "study_events" edges to StudyEvent entities.
-func (_u *CardUpdate) RemoveStudyEvents(v ...*StudyEvent) *CardUpdate {
+func (_u *CollectionUpdate) RemoveStudyEvents(v ...*StudyEvent) *CollectionUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -203,13 +146,13 @@ func (_u *CardUpdate) RemoveStudyEvents(v ...*StudyEvent) *CardUpdate {
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (_u *CardUpdate) Save(ctx context.Context) (int, error) {
+func (_u *CollectionUpdate) Save(ctx context.Context) (int, error) {
 	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *CardUpdate) SaveX(ctx context.Context) int {
+func (_u *CollectionUpdate) SaveX(ctx context.Context) int {
 	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -218,44 +161,44 @@ func (_u *CardUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (_u *CardUpdate) Exec(ctx context.Context) error {
+func (_u *CollectionUpdate) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *CardUpdate) ExecX(ctx context.Context) {
+func (_u *CollectionUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *CardUpdate) defaults() {
+func (_u *CollectionUpdate) defaults() {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := card.UpdateDefaultUpdatedAt()
+		v := collection.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *CardUpdate) check() error {
-	if v, ok := _u.mutation.Content(); ok {
-		if err := card.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Card.content": %w`, err)}
+func (_u *CollectionUpdate) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := collection.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Collection.name": %w`, err)}
 		}
 	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Card.creator"`)
+		return errors.New(`ent: clearing a required unique edge "Collection.creator"`)
 	}
 	return nil
 }
 
-func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+func (_u *CollectionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(card.Table, card.Columns, sqlgraph.NewFieldSpec(card.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(collection.Table, collection.Columns, sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -263,24 +206,18 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Hint(); ok {
-		_spec.SetField(card.FieldHint, field.TypeString, value)
-	}
-	if _u.mutation.HintCleared() {
-		_spec.ClearField(card.FieldHint, field.TypeString)
-	}
-	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(card.FieldContent, field.TypeString, value)
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(collection.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(card.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(collection.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   card.CreatorTable,
-			Columns: []string{card.CreatorColumn},
+			Table:   collection.CreatorTable,
+			Columns: []string{collection.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -292,56 +229,11 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   card.CreatorTable,
-			Columns: []string{card.CreatorColumn},
+			Table:   collection.CreatorTable,
+			Columns: []string{collection.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.DecksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   card.DecksTable,
-			Columns: card.DecksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedDecksIDs(); len(nodes) > 0 && !_u.mutation.DecksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   card.DecksTable,
-			Columns: card.DecksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.DecksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   card.DecksTable,
-			Columns: card.DecksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -353,8 +245,8 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.CollectionCardsTable,
-			Columns: []string{card.CollectionCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
@@ -366,8 +258,8 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.CollectionCardsTable,
-			Columns: []string{card.CollectionCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
@@ -382,8 +274,8 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.CollectionCardsTable,
-			Columns: []string{card.CollectionCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
@@ -398,8 +290,8 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.StudyEventsTable,
-			Columns: []string{card.StudyEventsColumn},
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
@@ -411,8 +303,8 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.StudyEventsTable,
-			Columns: []string{card.StudyEventsColumn},
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
@@ -427,8 +319,8 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.StudyEventsTable,
-			Columns: []string{card.StudyEventsColumn},
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
@@ -441,7 +333,7 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{card.Label}
+			err = &NotFoundError{collection.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -451,88 +343,53 @@ func (_u *CardUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	return _node, nil
 }
 
-// CardUpdateOne is the builder for updating a single Card entity.
-type CardUpdateOne struct {
+// CollectionUpdateOne is the builder for updating a single Collection entity.
+type CollectionUpdateOne struct {
 	config
 	fields   []string
 	hooks    []Hook
-	mutation *CardMutation
+	mutation *CollectionMutation
 }
 
-// SetHint sets the "hint" field.
-func (_u *CardUpdateOne) SetHint(v string) *CardUpdateOne {
-	_u.mutation.SetHint(v)
+// SetName sets the "name" field.
+func (_u *CollectionUpdateOne) SetName(v string) *CollectionUpdateOne {
+	_u.mutation.SetName(v)
 	return _u
 }
 
-// SetNillableHint sets the "hint" field if the given value is not nil.
-func (_u *CardUpdateOne) SetNillableHint(v *string) *CardUpdateOne {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *CollectionUpdateOne) SetNillableName(v *string) *CollectionUpdateOne {
 	if v != nil {
-		_u.SetHint(*v)
-	}
-	return _u
-}
-
-// ClearHint clears the value of the "hint" field.
-func (_u *CardUpdateOne) ClearHint() *CardUpdateOne {
-	_u.mutation.ClearHint()
-	return _u
-}
-
-// SetContent sets the "content" field.
-func (_u *CardUpdateOne) SetContent(v string) *CardUpdateOne {
-	_u.mutation.SetContent(v)
-	return _u
-}
-
-// SetNillableContent sets the "content" field if the given value is not nil.
-func (_u *CardUpdateOne) SetNillableContent(v *string) *CardUpdateOne {
-	if v != nil {
-		_u.SetContent(*v)
+		_u.SetName(*v)
 	}
 	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_u *CardUpdateOne) SetUpdatedAt(v time.Time) *CardUpdateOne {
+func (_u *CollectionUpdateOne) SetUpdatedAt(v time.Time) *CollectionUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
-func (_u *CardUpdateOne) SetCreatorID(id string) *CardUpdateOne {
+func (_u *CollectionUpdateOne) SetCreatorID(id string) *CollectionUpdateOne {
 	_u.mutation.SetCreatorID(id)
 	return _u
 }
 
 // SetCreator sets the "creator" edge to the User entity.
-func (_u *CardUpdateOne) SetCreator(v *User) *CardUpdateOne {
+func (_u *CollectionUpdateOne) SetCreator(v *User) *CollectionUpdateOne {
 	return _u.SetCreatorID(v.ID)
 }
 
-// AddDeckIDs adds the "decks" edge to the Deck entity by IDs.
-func (_u *CardUpdateOne) AddDeckIDs(ids ...string) *CardUpdateOne {
-	_u.mutation.AddDeckIDs(ids...)
-	return _u
-}
-
-// AddDecks adds the "decks" edges to the Deck entity.
-func (_u *CardUpdateOne) AddDecks(v ...*Deck) *CardUpdateOne {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddDeckIDs(ids...)
-}
-
 // AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by IDs.
-func (_u *CardUpdateOne) AddCollectionCardIDs(ids ...string) *CardUpdateOne {
+func (_u *CollectionUpdateOne) AddCollectionCardIDs(ids ...string) *CollectionUpdateOne {
 	_u.mutation.AddCollectionCardIDs(ids...)
 	return _u
 }
 
 // AddCollectionCards adds the "collection_cards" edges to the CollectionCard entity.
-func (_u *CardUpdateOne) AddCollectionCards(v ...*CollectionCard) *CardUpdateOne {
+func (_u *CollectionUpdateOne) AddCollectionCards(v ...*CollectionCard) *CollectionUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -541,13 +398,13 @@ func (_u *CardUpdateOne) AddCollectionCards(v ...*CollectionCard) *CardUpdateOne
 }
 
 // AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
-func (_u *CardUpdateOne) AddStudyEventIDs(ids ...string) *CardUpdateOne {
+func (_u *CollectionUpdateOne) AddStudyEventIDs(ids ...string) *CollectionUpdateOne {
 	_u.mutation.AddStudyEventIDs(ids...)
 	return _u
 }
 
 // AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
-func (_u *CardUpdateOne) AddStudyEvents(v ...*StudyEvent) *CardUpdateOne {
+func (_u *CollectionUpdateOne) AddStudyEvents(v ...*StudyEvent) *CollectionUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -555,52 +412,31 @@ func (_u *CardUpdateOne) AddStudyEvents(v ...*StudyEvent) *CardUpdateOne {
 	return _u.AddStudyEventIDs(ids...)
 }
 
-// Mutation returns the CardMutation object of the builder.
-func (_u *CardUpdateOne) Mutation() *CardMutation {
+// Mutation returns the CollectionMutation object of the builder.
+func (_u *CollectionUpdateOne) Mutation() *CollectionMutation {
 	return _u.mutation
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
-func (_u *CardUpdateOne) ClearCreator() *CardUpdateOne {
+func (_u *CollectionUpdateOne) ClearCreator() *CollectionUpdateOne {
 	_u.mutation.ClearCreator()
 	return _u
 }
 
-// ClearDecks clears all "decks" edges to the Deck entity.
-func (_u *CardUpdateOne) ClearDecks() *CardUpdateOne {
-	_u.mutation.ClearDecks()
-	return _u
-}
-
-// RemoveDeckIDs removes the "decks" edge to Deck entities by IDs.
-func (_u *CardUpdateOne) RemoveDeckIDs(ids ...string) *CardUpdateOne {
-	_u.mutation.RemoveDeckIDs(ids...)
-	return _u
-}
-
-// RemoveDecks removes "decks" edges to Deck entities.
-func (_u *CardUpdateOne) RemoveDecks(v ...*Deck) *CardUpdateOne {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveDeckIDs(ids...)
-}
-
 // ClearCollectionCards clears all "collection_cards" edges to the CollectionCard entity.
-func (_u *CardUpdateOne) ClearCollectionCards() *CardUpdateOne {
+func (_u *CollectionUpdateOne) ClearCollectionCards() *CollectionUpdateOne {
 	_u.mutation.ClearCollectionCards()
 	return _u
 }
 
 // RemoveCollectionCardIDs removes the "collection_cards" edge to CollectionCard entities by IDs.
-func (_u *CardUpdateOne) RemoveCollectionCardIDs(ids ...string) *CardUpdateOne {
+func (_u *CollectionUpdateOne) RemoveCollectionCardIDs(ids ...string) *CollectionUpdateOne {
 	_u.mutation.RemoveCollectionCardIDs(ids...)
 	return _u
 }
 
 // RemoveCollectionCards removes "collection_cards" edges to CollectionCard entities.
-func (_u *CardUpdateOne) RemoveCollectionCards(v ...*CollectionCard) *CardUpdateOne {
+func (_u *CollectionUpdateOne) RemoveCollectionCards(v ...*CollectionCard) *CollectionUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -609,19 +445,19 @@ func (_u *CardUpdateOne) RemoveCollectionCards(v ...*CollectionCard) *CardUpdate
 }
 
 // ClearStudyEvents clears all "study_events" edges to the StudyEvent entity.
-func (_u *CardUpdateOne) ClearStudyEvents() *CardUpdateOne {
+func (_u *CollectionUpdateOne) ClearStudyEvents() *CollectionUpdateOne {
 	_u.mutation.ClearStudyEvents()
 	return _u
 }
 
 // RemoveStudyEventIDs removes the "study_events" edge to StudyEvent entities by IDs.
-func (_u *CardUpdateOne) RemoveStudyEventIDs(ids ...string) *CardUpdateOne {
+func (_u *CollectionUpdateOne) RemoveStudyEventIDs(ids ...string) *CollectionUpdateOne {
 	_u.mutation.RemoveStudyEventIDs(ids...)
 	return _u
 }
 
 // RemoveStudyEvents removes "study_events" edges to StudyEvent entities.
-func (_u *CardUpdateOne) RemoveStudyEvents(v ...*StudyEvent) *CardUpdateOne {
+func (_u *CollectionUpdateOne) RemoveStudyEvents(v ...*StudyEvent) *CollectionUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -629,27 +465,27 @@ func (_u *CardUpdateOne) RemoveStudyEvents(v ...*StudyEvent) *CardUpdateOne {
 	return _u.RemoveStudyEventIDs(ids...)
 }
 
-// Where appends a list predicates to the CardUpdate builder.
-func (_u *CardUpdateOne) Where(ps ...predicate.Card) *CardUpdateOne {
+// Where appends a list predicates to the CollectionUpdate builder.
+func (_u *CollectionUpdateOne) Where(ps ...predicate.Collection) *CollectionUpdateOne {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (_u *CardUpdateOne) Select(field string, fields ...string) *CardUpdateOne {
+func (_u *CollectionUpdateOne) Select(field string, fields ...string) *CollectionUpdateOne {
 	_u.fields = append([]string{field}, fields...)
 	return _u
 }
 
-// Save executes the query and returns the updated Card entity.
-func (_u *CardUpdateOne) Save(ctx context.Context) (*Card, error) {
+// Save executes the query and returns the updated Collection entity.
+func (_u *CollectionUpdateOne) Save(ctx context.Context) (*Collection, error) {
 	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *CardUpdateOne) SaveX(ctx context.Context) *Card {
+func (_u *CollectionUpdateOne) SaveX(ctx context.Context) *Collection {
 	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -658,57 +494,57 @@ func (_u *CardUpdateOne) SaveX(ctx context.Context) *Card {
 }
 
 // Exec executes the query on the entity.
-func (_u *CardUpdateOne) Exec(ctx context.Context) error {
+func (_u *CollectionUpdateOne) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *CardUpdateOne) ExecX(ctx context.Context) {
+func (_u *CollectionUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *CardUpdateOne) defaults() {
+func (_u *CollectionUpdateOne) defaults() {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := card.UpdateDefaultUpdatedAt()
+		v := collection.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *CardUpdateOne) check() error {
-	if v, ok := _u.mutation.Content(); ok {
-		if err := card.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Card.content": %w`, err)}
+func (_u *CollectionUpdateOne) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := collection.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Collection.name": %w`, err)}
 		}
 	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Card.creator"`)
+		return errors.New(`ent: clearing a required unique edge "Collection.creator"`)
 	}
 	return nil
 }
 
-func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
+func (_u *CollectionUpdateOne) sqlSave(ctx context.Context) (_node *Collection, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(card.Table, card.Columns, sqlgraph.NewFieldSpec(card.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(collection.Table, collection.Columns, sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Card.id" for update`)}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Collection.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, card.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, collection.FieldID)
 		for _, f := range fields {
-			if !card.ValidColumn(f) {
+			if !collection.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != card.FieldID {
+			if f != collection.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -720,24 +556,18 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Hint(); ok {
-		_spec.SetField(card.FieldHint, field.TypeString, value)
-	}
-	if _u.mutation.HintCleared() {
-		_spec.ClearField(card.FieldHint, field.TypeString)
-	}
-	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(card.FieldContent, field.TypeString, value)
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(collection.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(card.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(collection.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   card.CreatorTable,
-			Columns: []string{card.CreatorColumn},
+			Table:   collection.CreatorTable,
+			Columns: []string{collection.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
@@ -749,56 +579,11 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   card.CreatorTable,
-			Columns: []string{card.CreatorColumn},
+			Table:   collection.CreatorTable,
+			Columns: []string{collection.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.DecksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   card.DecksTable,
-			Columns: card.DecksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedDecksIDs(); len(nodes) > 0 && !_u.mutation.DecksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   card.DecksTable,
-			Columns: card.DecksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.DecksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   card.DecksTable,
-			Columns: card.DecksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(deck.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -810,8 +595,8 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.CollectionCardsTable,
-			Columns: []string{card.CollectionCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
@@ -823,8 +608,8 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.CollectionCardsTable,
-			Columns: []string{card.CollectionCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
@@ -839,8 +624,8 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.CollectionCardsTable,
-			Columns: []string{card.CollectionCardsColumn},
+			Table:   collection.CollectionCardsTable,
+			Columns: []string{collection.CollectionCardsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectioncard.FieldID, field.TypeString),
@@ -855,8 +640,8 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.StudyEventsTable,
-			Columns: []string{card.StudyEventsColumn},
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
@@ -868,8 +653,8 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.StudyEventsTable,
-			Columns: []string{card.StudyEventsColumn},
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
@@ -884,8 +669,8 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   card.StudyEventsTable,
-			Columns: []string{card.StudyEventsColumn},
+			Table:   collection.StudyEventsTable,
+			Columns: []string{collection.StudyEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
@@ -896,12 +681,12 @@ func (_u *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Card{config: _u.config}
+	_node = &Collection{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{card.Label}
+			err = &NotFoundError{collection.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

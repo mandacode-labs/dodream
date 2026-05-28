@@ -32,6 +32,7 @@ func (Deck) Edges() []ent.Edge {
 			Required(),
 		edge.From("cards", Card.Type).
 			Ref("decks"),
-		edge.To("notebook_cards", NotebookCard.Type),
+		edge.To("collection_cards", CollectionCard.Type),
+		edge.To("study_events", StudyEvent.Type),
 	}
 }

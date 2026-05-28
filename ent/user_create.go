@@ -11,8 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -99,19 +100,34 @@ func (_c *UserCreate) AddDecks(v ...*Deck) *UserCreate {
 	return _c.AddDeckIDs(ids...)
 }
 
-// AddNotebookIDs adds the "notebooks" edge to the Notebook entity by IDs.
-func (_c *UserCreate) AddNotebookIDs(ids ...string) *UserCreate {
-	_c.mutation.AddNotebookIDs(ids...)
+// AddCollectionIDs adds the "collections" edge to the Collection entity by IDs.
+func (_c *UserCreate) AddCollectionIDs(ids ...string) *UserCreate {
+	_c.mutation.AddCollectionIDs(ids...)
 	return _c
 }
 
-// AddNotebooks adds the "notebooks" edges to the Notebook entity.
-func (_c *UserCreate) AddNotebooks(v ...*Notebook) *UserCreate {
+// AddCollections adds the "collections" edges to the Collection entity.
+func (_c *UserCreate) AddCollections(v ...*Collection) *UserCreate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddNotebookIDs(ids...)
+	return _c.AddCollectionIDs(ids...)
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by IDs.
+func (_c *UserCreate) AddStudyEventIDs(ids ...string) *UserCreate {
+	_c.mutation.AddStudyEventIDs(ids...)
+	return _c
+}
+
+// AddStudyEvents adds the "study_events" edges to the StudyEvent entity.
+func (_c *UserCreate) AddStudyEvents(v ...*StudyEvent) *UserCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStudyEventIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -266,15 +282,31 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.NotebooksIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CollectionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.NotebooksTable,
-			Columns: []string{user.NotebooksColumn},
+			Table:   user.CollectionsTable,
+			Columns: []string{user.CollectionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(notebook.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StudyEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.StudyEventsTable,
+			Columns: []string{user.StudyEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

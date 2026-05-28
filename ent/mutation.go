@@ -12,10 +12,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
 	"github.com/mandacode-labs/dodream/ent/predicate"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -28,35 +29,39 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCard         = "Card"
-	TypeDeck         = "Deck"
-	TypeNotebook     = "Notebook"
-	TypeNotebookCard = "NotebookCard"
-	TypeUser         = "User"
+	TypeCard           = "Card"
+	TypeCollection     = "Collection"
+	TypeCollectionCard = "CollectionCard"
+	TypeDeck           = "Deck"
+	TypeStudyEvent     = "StudyEvent"
+	TypeUser           = "User"
 )
 
 // CardMutation represents an operation that mutates the Card nodes in the graph.
 type CardMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *string
-	hint                  *string
-	content               *string
-	created_at            *time.Time
-	updated_at            *time.Time
-	clearedFields         map[string]struct{}
-	creator               *string
-	clearedcreator        bool
-	decks                 map[string]struct{}
-	removeddecks          map[string]struct{}
-	cleareddecks          bool
-	notebook_cards        map[string]struct{}
-	removednotebook_cards map[string]struct{}
-	clearednotebook_cards bool
-	done                  bool
-	oldValue              func(context.Context) (*Card, error)
-	predicates            []predicate.Card
+	op                      Op
+	typ                     string
+	id                      *string
+	hint                    *string
+	content                 *string
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	creator                 *string
+	clearedcreator          bool
+	decks                   map[string]struct{}
+	removeddecks            map[string]struct{}
+	cleareddecks            bool
+	collection_cards        map[string]struct{}
+	removedcollection_cards map[string]struct{}
+	clearedcollection_cards bool
+	study_events            map[string]struct{}
+	removedstudy_events     map[string]struct{}
+	clearedstudy_events     bool
+	done                    bool
+	oldValue                func(context.Context) (*Card, error)
+	predicates              []predicate.Card
 }
 
 var _ ent.Mutation = (*CardMutation)(nil)
@@ -413,58 +418,112 @@ func (m *CardMutation) ResetDecks() {
 	m.removeddecks = nil
 }
 
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by ids.
-func (m *CardMutation) AddNotebookCardIDs(ids ...string) {
-	if m.notebook_cards == nil {
-		m.notebook_cards = make(map[string]struct{})
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by ids.
+func (m *CardMutation) AddCollectionCardIDs(ids ...string) {
+	if m.collection_cards == nil {
+		m.collection_cards = make(map[string]struct{})
 	}
 	for i := range ids {
-		m.notebook_cards[ids[i]] = struct{}{}
+		m.collection_cards[ids[i]] = struct{}{}
 	}
 }
 
-// ClearNotebookCards clears the "notebook_cards" edge to the NotebookCard entity.
-func (m *CardMutation) ClearNotebookCards() {
-	m.clearednotebook_cards = true
+// ClearCollectionCards clears the "collection_cards" edge to the CollectionCard entity.
+func (m *CardMutation) ClearCollectionCards() {
+	m.clearedcollection_cards = true
 }
 
-// NotebookCardsCleared reports if the "notebook_cards" edge to the NotebookCard entity was cleared.
-func (m *CardMutation) NotebookCardsCleared() bool {
-	return m.clearednotebook_cards
+// CollectionCardsCleared reports if the "collection_cards" edge to the CollectionCard entity was cleared.
+func (m *CardMutation) CollectionCardsCleared() bool {
+	return m.clearedcollection_cards
 }
 
-// RemoveNotebookCardIDs removes the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (m *CardMutation) RemoveNotebookCardIDs(ids ...string) {
-	if m.removednotebook_cards == nil {
-		m.removednotebook_cards = make(map[string]struct{})
+// RemoveCollectionCardIDs removes the "collection_cards" edge to the CollectionCard entity by IDs.
+func (m *CardMutation) RemoveCollectionCardIDs(ids ...string) {
+	if m.removedcollection_cards == nil {
+		m.removedcollection_cards = make(map[string]struct{})
 	}
 	for i := range ids {
-		delete(m.notebook_cards, ids[i])
-		m.removednotebook_cards[ids[i]] = struct{}{}
+		delete(m.collection_cards, ids[i])
+		m.removedcollection_cards[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedNotebookCards returns the removed IDs of the "notebook_cards" edge to the NotebookCard entity.
-func (m *CardMutation) RemovedNotebookCardsIDs() (ids []string) {
-	for id := range m.removednotebook_cards {
+// RemovedCollectionCards returns the removed IDs of the "collection_cards" edge to the CollectionCard entity.
+func (m *CardMutation) RemovedCollectionCardsIDs() (ids []string) {
+	for id := range m.removedcollection_cards {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// NotebookCardsIDs returns the "notebook_cards" edge IDs in the mutation.
-func (m *CardMutation) NotebookCardsIDs() (ids []string) {
-	for id := range m.notebook_cards {
+// CollectionCardsIDs returns the "collection_cards" edge IDs in the mutation.
+func (m *CardMutation) CollectionCardsIDs() (ids []string) {
+	for id := range m.collection_cards {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetNotebookCards resets all changes to the "notebook_cards" edge.
-func (m *CardMutation) ResetNotebookCards() {
-	m.notebook_cards = nil
-	m.clearednotebook_cards = false
-	m.removednotebook_cards = nil
+// ResetCollectionCards resets all changes to the "collection_cards" edge.
+func (m *CardMutation) ResetCollectionCards() {
+	m.collection_cards = nil
+	m.clearedcollection_cards = false
+	m.removedcollection_cards = nil
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by ids.
+func (m *CardMutation) AddStudyEventIDs(ids ...string) {
+	if m.study_events == nil {
+		m.study_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.study_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStudyEvents clears the "study_events" edge to the StudyEvent entity.
+func (m *CardMutation) ClearStudyEvents() {
+	m.clearedstudy_events = true
+}
+
+// StudyEventsCleared reports if the "study_events" edge to the StudyEvent entity was cleared.
+func (m *CardMutation) StudyEventsCleared() bool {
+	return m.clearedstudy_events
+}
+
+// RemoveStudyEventIDs removes the "study_events" edge to the StudyEvent entity by IDs.
+func (m *CardMutation) RemoveStudyEventIDs(ids ...string) {
+	if m.removedstudy_events == nil {
+		m.removedstudy_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.study_events, ids[i])
+		m.removedstudy_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStudyEvents returns the removed IDs of the "study_events" edge to the StudyEvent entity.
+func (m *CardMutation) RemovedStudyEventsIDs() (ids []string) {
+	for id := range m.removedstudy_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StudyEventsIDs returns the "study_events" edge IDs in the mutation.
+func (m *CardMutation) StudyEventsIDs() (ids []string) {
+	for id := range m.study_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStudyEvents resets all changes to the "study_events" edge.
+func (m *CardMutation) ResetStudyEvents() {
+	m.study_events = nil
+	m.clearedstudy_events = false
+	m.removedstudy_events = nil
 }
 
 // Where appends a list predicates to the CardMutation builder.
@@ -660,15 +719,18 @@ func (m *CardMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CardMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.creator != nil {
 		edges = append(edges, card.EdgeCreator)
 	}
 	if m.decks != nil {
 		edges = append(edges, card.EdgeDecks)
 	}
-	if m.notebook_cards != nil {
-		edges = append(edges, card.EdgeNotebookCards)
+	if m.collection_cards != nil {
+		edges = append(edges, card.EdgeCollectionCards)
+	}
+	if m.study_events != nil {
+		edges = append(edges, card.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -687,9 +749,15 @@ func (m *CardMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case card.EdgeNotebookCards:
-		ids := make([]ent.Value, 0, len(m.notebook_cards))
-		for id := range m.notebook_cards {
+	case card.EdgeCollectionCards:
+		ids := make([]ent.Value, 0, len(m.collection_cards))
+		for id := range m.collection_cards {
+			ids = append(ids, id)
+		}
+		return ids
+	case card.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.study_events))
+		for id := range m.study_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -699,12 +767,15 @@ func (m *CardMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CardMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removeddecks != nil {
 		edges = append(edges, card.EdgeDecks)
 	}
-	if m.removednotebook_cards != nil {
-		edges = append(edges, card.EdgeNotebookCards)
+	if m.removedcollection_cards != nil {
+		edges = append(edges, card.EdgeCollectionCards)
+	}
+	if m.removedstudy_events != nil {
+		edges = append(edges, card.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -719,9 +790,15 @@ func (m *CardMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case card.EdgeNotebookCards:
-		ids := make([]ent.Value, 0, len(m.removednotebook_cards))
-		for id := range m.removednotebook_cards {
+	case card.EdgeCollectionCards:
+		ids := make([]ent.Value, 0, len(m.removedcollection_cards))
+		for id := range m.removedcollection_cards {
+			ids = append(ids, id)
+		}
+		return ids
+	case card.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.removedstudy_events))
+		for id := range m.removedstudy_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -731,15 +808,18 @@ func (m *CardMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CardMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedcreator {
 		edges = append(edges, card.EdgeCreator)
 	}
 	if m.cleareddecks {
 		edges = append(edges, card.EdgeDecks)
 	}
-	if m.clearednotebook_cards {
-		edges = append(edges, card.EdgeNotebookCards)
+	if m.clearedcollection_cards {
+		edges = append(edges, card.EdgeCollectionCards)
+	}
+	if m.clearedstudy_events {
+		edges = append(edges, card.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -752,8 +832,10 @@ func (m *CardMutation) EdgeCleared(name string) bool {
 		return m.clearedcreator
 	case card.EdgeDecks:
 		return m.cleareddecks
-	case card.EdgeNotebookCards:
-		return m.clearednotebook_cards
+	case card.EdgeCollectionCards:
+		return m.clearedcollection_cards
+	case card.EdgeStudyEvents:
+		return m.clearedstudy_events
 	}
 	return false
 }
@@ -779,34 +861,1286 @@ func (m *CardMutation) ResetEdge(name string) error {
 	case card.EdgeDecks:
 		m.ResetDecks()
 		return nil
-	case card.EdgeNotebookCards:
-		m.ResetNotebookCards()
+	case card.EdgeCollectionCards:
+		m.ResetCollectionCards()
+		return nil
+	case card.EdgeStudyEvents:
+		m.ResetStudyEvents()
 		return nil
 	}
 	return fmt.Errorf("unknown Card edge %s", name)
 }
 
+// CollectionMutation represents an operation that mutates the Collection nodes in the graph.
+type CollectionMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *string
+	name                    *string
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	creator                 *string
+	clearedcreator          bool
+	collection_cards        map[string]struct{}
+	removedcollection_cards map[string]struct{}
+	clearedcollection_cards bool
+	study_events            map[string]struct{}
+	removedstudy_events     map[string]struct{}
+	clearedstudy_events     bool
+	done                    bool
+	oldValue                func(context.Context) (*Collection, error)
+	predicates              []predicate.Collection
+}
+
+var _ ent.Mutation = (*CollectionMutation)(nil)
+
+// collectionOption allows management of the mutation configuration using functional options.
+type collectionOption func(*CollectionMutation)
+
+// newCollectionMutation creates new mutation for the Collection entity.
+func newCollectionMutation(c config, op Op, opts ...collectionOption) *CollectionMutation {
+	m := &CollectionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCollection,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCollectionID sets the ID field of the mutation.
+func withCollectionID(id string) collectionOption {
+	return func(m *CollectionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Collection
+		)
+		m.oldValue = func(ctx context.Context) (*Collection, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Collection.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCollection sets the old Collection of the mutation.
+func withCollection(node *Collection) collectionOption {
+	return func(m *CollectionMutation) {
+		m.oldValue = func(context.Context) (*Collection, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CollectionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CollectionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Collection entities.
+func (m *CollectionMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CollectionMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CollectionMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Collection.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *CollectionMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CollectionMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Collection entity.
+// If the Collection object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollectionMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CollectionMutation) ResetName() {
+	m.name = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CollectionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CollectionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Collection entity.
+// If the Collection object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollectionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CollectionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CollectionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CollectionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Collection entity.
+// If the Collection object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollectionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CollectionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CollectionMutation) SetCreatorID(id string) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CollectionMutation) ClearCreator() {
+	m.clearedcreator = true
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CollectionMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CollectionMutation) CreatorID() (id string, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CollectionMutation) CreatorIDs() (ids []string) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CollectionMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by ids.
+func (m *CollectionMutation) AddCollectionCardIDs(ids ...string) {
+	if m.collection_cards == nil {
+		m.collection_cards = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.collection_cards[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCollectionCards clears the "collection_cards" edge to the CollectionCard entity.
+func (m *CollectionMutation) ClearCollectionCards() {
+	m.clearedcollection_cards = true
+}
+
+// CollectionCardsCleared reports if the "collection_cards" edge to the CollectionCard entity was cleared.
+func (m *CollectionMutation) CollectionCardsCleared() bool {
+	return m.clearedcollection_cards
+}
+
+// RemoveCollectionCardIDs removes the "collection_cards" edge to the CollectionCard entity by IDs.
+func (m *CollectionMutation) RemoveCollectionCardIDs(ids ...string) {
+	if m.removedcollection_cards == nil {
+		m.removedcollection_cards = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.collection_cards, ids[i])
+		m.removedcollection_cards[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCollectionCards returns the removed IDs of the "collection_cards" edge to the CollectionCard entity.
+func (m *CollectionMutation) RemovedCollectionCardsIDs() (ids []string) {
+	for id := range m.removedcollection_cards {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CollectionCardsIDs returns the "collection_cards" edge IDs in the mutation.
+func (m *CollectionMutation) CollectionCardsIDs() (ids []string) {
+	for id := range m.collection_cards {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCollectionCards resets all changes to the "collection_cards" edge.
+func (m *CollectionMutation) ResetCollectionCards() {
+	m.collection_cards = nil
+	m.clearedcollection_cards = false
+	m.removedcollection_cards = nil
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by ids.
+func (m *CollectionMutation) AddStudyEventIDs(ids ...string) {
+	if m.study_events == nil {
+		m.study_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.study_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStudyEvents clears the "study_events" edge to the StudyEvent entity.
+func (m *CollectionMutation) ClearStudyEvents() {
+	m.clearedstudy_events = true
+}
+
+// StudyEventsCleared reports if the "study_events" edge to the StudyEvent entity was cleared.
+func (m *CollectionMutation) StudyEventsCleared() bool {
+	return m.clearedstudy_events
+}
+
+// RemoveStudyEventIDs removes the "study_events" edge to the StudyEvent entity by IDs.
+func (m *CollectionMutation) RemoveStudyEventIDs(ids ...string) {
+	if m.removedstudy_events == nil {
+		m.removedstudy_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.study_events, ids[i])
+		m.removedstudy_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStudyEvents returns the removed IDs of the "study_events" edge to the StudyEvent entity.
+func (m *CollectionMutation) RemovedStudyEventsIDs() (ids []string) {
+	for id := range m.removedstudy_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StudyEventsIDs returns the "study_events" edge IDs in the mutation.
+func (m *CollectionMutation) StudyEventsIDs() (ids []string) {
+	for id := range m.study_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStudyEvents resets all changes to the "study_events" edge.
+func (m *CollectionMutation) ResetStudyEvents() {
+	m.study_events = nil
+	m.clearedstudy_events = false
+	m.removedstudy_events = nil
+}
+
+// Where appends a list predicates to the CollectionMutation builder.
+func (m *CollectionMutation) Where(ps ...predicate.Collection) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CollectionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CollectionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Collection, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CollectionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CollectionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Collection).
+func (m *CollectionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CollectionMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.name != nil {
+		fields = append(fields, collection.FieldName)
+	}
+	if m.created_at != nil {
+		fields = append(fields, collection.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, collection.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CollectionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case collection.FieldName:
+		return m.Name()
+	case collection.FieldCreatedAt:
+		return m.CreatedAt()
+	case collection.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CollectionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case collection.FieldName:
+		return m.OldName(ctx)
+	case collection.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case collection.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Collection field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CollectionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case collection.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case collection.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case collection.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Collection field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CollectionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CollectionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CollectionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Collection numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CollectionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CollectionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CollectionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Collection nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CollectionMutation) ResetField(name string) error {
+	switch name {
+	case collection.FieldName:
+		m.ResetName()
+		return nil
+	case collection.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case collection.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Collection field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CollectionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.creator != nil {
+		edges = append(edges, collection.EdgeCreator)
+	}
+	if m.collection_cards != nil {
+		edges = append(edges, collection.EdgeCollectionCards)
+	}
+	if m.study_events != nil {
+		edges = append(edges, collection.EdgeStudyEvents)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CollectionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case collection.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case collection.EdgeCollectionCards:
+		ids := make([]ent.Value, 0, len(m.collection_cards))
+		for id := range m.collection_cards {
+			ids = append(ids, id)
+		}
+		return ids
+	case collection.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.study_events))
+		for id := range m.study_events {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CollectionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedcollection_cards != nil {
+		edges = append(edges, collection.EdgeCollectionCards)
+	}
+	if m.removedstudy_events != nil {
+		edges = append(edges, collection.EdgeStudyEvents)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CollectionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case collection.EdgeCollectionCards:
+		ids := make([]ent.Value, 0, len(m.removedcollection_cards))
+		for id := range m.removedcollection_cards {
+			ids = append(ids, id)
+		}
+		return ids
+	case collection.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.removedstudy_events))
+		for id := range m.removedstudy_events {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CollectionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedcreator {
+		edges = append(edges, collection.EdgeCreator)
+	}
+	if m.clearedcollection_cards {
+		edges = append(edges, collection.EdgeCollectionCards)
+	}
+	if m.clearedstudy_events {
+		edges = append(edges, collection.EdgeStudyEvents)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CollectionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case collection.EdgeCreator:
+		return m.clearedcreator
+	case collection.EdgeCollectionCards:
+		return m.clearedcollection_cards
+	case collection.EdgeStudyEvents:
+		return m.clearedstudy_events
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CollectionMutation) ClearEdge(name string) error {
+	switch name {
+	case collection.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	}
+	return fmt.Errorf("unknown Collection unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CollectionMutation) ResetEdge(name string) error {
+	switch name {
+	case collection.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case collection.EdgeCollectionCards:
+		m.ResetCollectionCards()
+		return nil
+	case collection.EdgeStudyEvents:
+		m.ResetStudyEvents()
+		return nil
+	}
+	return fmt.Errorf("unknown Collection edge %s", name)
+}
+
+// CollectionCardMutation represents an operation that mutates the CollectionCard nodes in the graph.
+type CollectionCardMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *string
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	collection        *string
+	clearedcollection bool
+	card              *string
+	clearedcard       bool
+	deck              *string
+	cleareddeck       bool
+	done              bool
+	oldValue          func(context.Context) (*CollectionCard, error)
+	predicates        []predicate.CollectionCard
+}
+
+var _ ent.Mutation = (*CollectionCardMutation)(nil)
+
+// collectioncardOption allows management of the mutation configuration using functional options.
+type collectioncardOption func(*CollectionCardMutation)
+
+// newCollectionCardMutation creates new mutation for the CollectionCard entity.
+func newCollectionCardMutation(c config, op Op, opts ...collectioncardOption) *CollectionCardMutation {
+	m := &CollectionCardMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCollectionCard,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCollectionCardID sets the ID field of the mutation.
+func withCollectionCardID(id string) collectioncardOption {
+	return func(m *CollectionCardMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CollectionCard
+		)
+		m.oldValue = func(ctx context.Context) (*CollectionCard, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CollectionCard.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCollectionCard sets the old CollectionCard of the mutation.
+func withCollectionCard(node *CollectionCard) collectioncardOption {
+	return func(m *CollectionCardMutation) {
+		m.oldValue = func(context.Context) (*CollectionCard, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CollectionCardMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CollectionCardMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CollectionCard entities.
+func (m *CollectionCardMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CollectionCardMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CollectionCardMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CollectionCard.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CollectionCardMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CollectionCardMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CollectionCard entity.
+// If the CollectionCard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollectionCardMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CollectionCardMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CollectionCardMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CollectionCardMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CollectionCard entity.
+// If the CollectionCard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollectionCardMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CollectionCardMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetCollectionID sets the "collection" edge to the Collection entity by id.
+func (m *CollectionCardMutation) SetCollectionID(id string) {
+	m.collection = &id
+}
+
+// ClearCollection clears the "collection" edge to the Collection entity.
+func (m *CollectionCardMutation) ClearCollection() {
+	m.clearedcollection = true
+}
+
+// CollectionCleared reports if the "collection" edge to the Collection entity was cleared.
+func (m *CollectionCardMutation) CollectionCleared() bool {
+	return m.clearedcollection
+}
+
+// CollectionID returns the "collection" edge ID in the mutation.
+func (m *CollectionCardMutation) CollectionID() (id string, exists bool) {
+	if m.collection != nil {
+		return *m.collection, true
+	}
+	return
+}
+
+// CollectionIDs returns the "collection" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CollectionID instead. It exists only for internal usage by the builders.
+func (m *CollectionCardMutation) CollectionIDs() (ids []string) {
+	if id := m.collection; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCollection resets all changes to the "collection" edge.
+func (m *CollectionCardMutation) ResetCollection() {
+	m.collection = nil
+	m.clearedcollection = false
+}
+
+// SetCardID sets the "card" edge to the Card entity by id.
+func (m *CollectionCardMutation) SetCardID(id string) {
+	m.card = &id
+}
+
+// ClearCard clears the "card" edge to the Card entity.
+func (m *CollectionCardMutation) ClearCard() {
+	m.clearedcard = true
+}
+
+// CardCleared reports if the "card" edge to the Card entity was cleared.
+func (m *CollectionCardMutation) CardCleared() bool {
+	return m.clearedcard
+}
+
+// CardID returns the "card" edge ID in the mutation.
+func (m *CollectionCardMutation) CardID() (id string, exists bool) {
+	if m.card != nil {
+		return *m.card, true
+	}
+	return
+}
+
+// CardIDs returns the "card" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CardID instead. It exists only for internal usage by the builders.
+func (m *CollectionCardMutation) CardIDs() (ids []string) {
+	if id := m.card; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCard resets all changes to the "card" edge.
+func (m *CollectionCardMutation) ResetCard() {
+	m.card = nil
+	m.clearedcard = false
+}
+
+// SetDeckID sets the "deck" edge to the Deck entity by id.
+func (m *CollectionCardMutation) SetDeckID(id string) {
+	m.deck = &id
+}
+
+// ClearDeck clears the "deck" edge to the Deck entity.
+func (m *CollectionCardMutation) ClearDeck() {
+	m.cleareddeck = true
+}
+
+// DeckCleared reports if the "deck" edge to the Deck entity was cleared.
+func (m *CollectionCardMutation) DeckCleared() bool {
+	return m.cleareddeck
+}
+
+// DeckID returns the "deck" edge ID in the mutation.
+func (m *CollectionCardMutation) DeckID() (id string, exists bool) {
+	if m.deck != nil {
+		return *m.deck, true
+	}
+	return
+}
+
+// DeckIDs returns the "deck" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeckID instead. It exists only for internal usage by the builders.
+func (m *CollectionCardMutation) DeckIDs() (ids []string) {
+	if id := m.deck; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeck resets all changes to the "deck" edge.
+func (m *CollectionCardMutation) ResetDeck() {
+	m.deck = nil
+	m.cleareddeck = false
+}
+
+// Where appends a list predicates to the CollectionCardMutation builder.
+func (m *CollectionCardMutation) Where(ps ...predicate.CollectionCard) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CollectionCardMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CollectionCardMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CollectionCard, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CollectionCardMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CollectionCardMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CollectionCard).
+func (m *CollectionCardMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CollectionCardMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.created_at != nil {
+		fields = append(fields, collectioncard.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, collectioncard.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CollectionCardMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case collectioncard.FieldCreatedAt:
+		return m.CreatedAt()
+	case collectioncard.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CollectionCardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case collectioncard.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case collectioncard.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown CollectionCard field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CollectionCardMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case collectioncard.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case collectioncard.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CollectionCard field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CollectionCardMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CollectionCardMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CollectionCardMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CollectionCard numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CollectionCardMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CollectionCardMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CollectionCardMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CollectionCard nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CollectionCardMutation) ResetField(name string) error {
+	switch name {
+	case collectioncard.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case collectioncard.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CollectionCard field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CollectionCardMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.collection != nil {
+		edges = append(edges, collectioncard.EdgeCollection)
+	}
+	if m.card != nil {
+		edges = append(edges, collectioncard.EdgeCard)
+	}
+	if m.deck != nil {
+		edges = append(edges, collectioncard.EdgeDeck)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CollectionCardMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case collectioncard.EdgeCollection:
+		if id := m.collection; id != nil {
+			return []ent.Value{*id}
+		}
+	case collectioncard.EdgeCard:
+		if id := m.card; id != nil {
+			return []ent.Value{*id}
+		}
+	case collectioncard.EdgeDeck:
+		if id := m.deck; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CollectionCardMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CollectionCardMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CollectionCardMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedcollection {
+		edges = append(edges, collectioncard.EdgeCollection)
+	}
+	if m.clearedcard {
+		edges = append(edges, collectioncard.EdgeCard)
+	}
+	if m.cleareddeck {
+		edges = append(edges, collectioncard.EdgeDeck)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CollectionCardMutation) EdgeCleared(name string) bool {
+	switch name {
+	case collectioncard.EdgeCollection:
+		return m.clearedcollection
+	case collectioncard.EdgeCard:
+		return m.clearedcard
+	case collectioncard.EdgeDeck:
+		return m.cleareddeck
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CollectionCardMutation) ClearEdge(name string) error {
+	switch name {
+	case collectioncard.EdgeCollection:
+		m.ClearCollection()
+		return nil
+	case collectioncard.EdgeCard:
+		m.ClearCard()
+		return nil
+	case collectioncard.EdgeDeck:
+		m.ClearDeck()
+		return nil
+	}
+	return fmt.Errorf("unknown CollectionCard unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CollectionCardMutation) ResetEdge(name string) error {
+	switch name {
+	case collectioncard.EdgeCollection:
+		m.ResetCollection()
+		return nil
+	case collectioncard.EdgeCard:
+		m.ResetCard()
+		return nil
+	case collectioncard.EdgeDeck:
+		m.ResetDeck()
+		return nil
+	}
+	return fmt.Errorf("unknown CollectionCard edge %s", name)
+}
+
 // DeckMutation represents an operation that mutates the Deck nodes in the graph.
 type DeckMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *string
-	name                  *string
-	created_at            *time.Time
-	updated_at            *time.Time
-	clearedFields         map[string]struct{}
-	creator               *string
-	clearedcreator        bool
-	cards                 map[string]struct{}
-	removedcards          map[string]struct{}
-	clearedcards          bool
-	notebook_cards        map[string]struct{}
-	removednotebook_cards map[string]struct{}
-	clearednotebook_cards bool
-	done                  bool
-	oldValue              func(context.Context) (*Deck, error)
-	predicates            []predicate.Deck
+	op                      Op
+	typ                     string
+	id                      *string
+	name                    *string
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	creator                 *string
+	clearedcreator          bool
+	cards                   map[string]struct{}
+	removedcards            map[string]struct{}
+	clearedcards            bool
+	collection_cards        map[string]struct{}
+	removedcollection_cards map[string]struct{}
+	clearedcollection_cards bool
+	study_events            map[string]struct{}
+	removedstudy_events     map[string]struct{}
+	clearedstudy_events     bool
+	done                    bool
+	oldValue                func(context.Context) (*Deck, error)
+	predicates              []predicate.Deck
 }
 
 var _ ent.Mutation = (*DeckMutation)(nil)
@@ -1114,58 +2448,112 @@ func (m *DeckMutation) ResetCards() {
 	m.removedcards = nil
 }
 
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by ids.
-func (m *DeckMutation) AddNotebookCardIDs(ids ...string) {
-	if m.notebook_cards == nil {
-		m.notebook_cards = make(map[string]struct{})
+// AddCollectionCardIDs adds the "collection_cards" edge to the CollectionCard entity by ids.
+func (m *DeckMutation) AddCollectionCardIDs(ids ...string) {
+	if m.collection_cards == nil {
+		m.collection_cards = make(map[string]struct{})
 	}
 	for i := range ids {
-		m.notebook_cards[ids[i]] = struct{}{}
+		m.collection_cards[ids[i]] = struct{}{}
 	}
 }
 
-// ClearNotebookCards clears the "notebook_cards" edge to the NotebookCard entity.
-func (m *DeckMutation) ClearNotebookCards() {
-	m.clearednotebook_cards = true
+// ClearCollectionCards clears the "collection_cards" edge to the CollectionCard entity.
+func (m *DeckMutation) ClearCollectionCards() {
+	m.clearedcollection_cards = true
 }
 
-// NotebookCardsCleared reports if the "notebook_cards" edge to the NotebookCard entity was cleared.
-func (m *DeckMutation) NotebookCardsCleared() bool {
-	return m.clearednotebook_cards
+// CollectionCardsCleared reports if the "collection_cards" edge to the CollectionCard entity was cleared.
+func (m *DeckMutation) CollectionCardsCleared() bool {
+	return m.clearedcollection_cards
 }
 
-// RemoveNotebookCardIDs removes the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (m *DeckMutation) RemoveNotebookCardIDs(ids ...string) {
-	if m.removednotebook_cards == nil {
-		m.removednotebook_cards = make(map[string]struct{})
+// RemoveCollectionCardIDs removes the "collection_cards" edge to the CollectionCard entity by IDs.
+func (m *DeckMutation) RemoveCollectionCardIDs(ids ...string) {
+	if m.removedcollection_cards == nil {
+		m.removedcollection_cards = make(map[string]struct{})
 	}
 	for i := range ids {
-		delete(m.notebook_cards, ids[i])
-		m.removednotebook_cards[ids[i]] = struct{}{}
+		delete(m.collection_cards, ids[i])
+		m.removedcollection_cards[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedNotebookCards returns the removed IDs of the "notebook_cards" edge to the NotebookCard entity.
-func (m *DeckMutation) RemovedNotebookCardsIDs() (ids []string) {
-	for id := range m.removednotebook_cards {
+// RemovedCollectionCards returns the removed IDs of the "collection_cards" edge to the CollectionCard entity.
+func (m *DeckMutation) RemovedCollectionCardsIDs() (ids []string) {
+	for id := range m.removedcollection_cards {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// NotebookCardsIDs returns the "notebook_cards" edge IDs in the mutation.
-func (m *DeckMutation) NotebookCardsIDs() (ids []string) {
-	for id := range m.notebook_cards {
+// CollectionCardsIDs returns the "collection_cards" edge IDs in the mutation.
+func (m *DeckMutation) CollectionCardsIDs() (ids []string) {
+	for id := range m.collection_cards {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetNotebookCards resets all changes to the "notebook_cards" edge.
-func (m *DeckMutation) ResetNotebookCards() {
-	m.notebook_cards = nil
-	m.clearednotebook_cards = false
-	m.removednotebook_cards = nil
+// ResetCollectionCards resets all changes to the "collection_cards" edge.
+func (m *DeckMutation) ResetCollectionCards() {
+	m.collection_cards = nil
+	m.clearedcollection_cards = false
+	m.removedcollection_cards = nil
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by ids.
+func (m *DeckMutation) AddStudyEventIDs(ids ...string) {
+	if m.study_events == nil {
+		m.study_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.study_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStudyEvents clears the "study_events" edge to the StudyEvent entity.
+func (m *DeckMutation) ClearStudyEvents() {
+	m.clearedstudy_events = true
+}
+
+// StudyEventsCleared reports if the "study_events" edge to the StudyEvent entity was cleared.
+func (m *DeckMutation) StudyEventsCleared() bool {
+	return m.clearedstudy_events
+}
+
+// RemoveStudyEventIDs removes the "study_events" edge to the StudyEvent entity by IDs.
+func (m *DeckMutation) RemoveStudyEventIDs(ids ...string) {
+	if m.removedstudy_events == nil {
+		m.removedstudy_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.study_events, ids[i])
+		m.removedstudy_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStudyEvents returns the removed IDs of the "study_events" edge to the StudyEvent entity.
+func (m *DeckMutation) RemovedStudyEventsIDs() (ids []string) {
+	for id := range m.removedstudy_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StudyEventsIDs returns the "study_events" edge IDs in the mutation.
+func (m *DeckMutation) StudyEventsIDs() (ids []string) {
+	for id := range m.study_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStudyEvents resets all changes to the "study_events" edge.
+func (m *DeckMutation) ResetStudyEvents() {
+	m.study_events = nil
+	m.clearedstudy_events = false
+	m.removedstudy_events = nil
 }
 
 // Where appends a list predicates to the DeckMutation builder.
@@ -1335,15 +2723,18 @@ func (m *DeckMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DeckMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.creator != nil {
 		edges = append(edges, deck.EdgeCreator)
 	}
 	if m.cards != nil {
 		edges = append(edges, deck.EdgeCards)
 	}
-	if m.notebook_cards != nil {
-		edges = append(edges, deck.EdgeNotebookCards)
+	if m.collection_cards != nil {
+		edges = append(edges, deck.EdgeCollectionCards)
+	}
+	if m.study_events != nil {
+		edges = append(edges, deck.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -1362,9 +2753,15 @@ func (m *DeckMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case deck.EdgeNotebookCards:
-		ids := make([]ent.Value, 0, len(m.notebook_cards))
-		for id := range m.notebook_cards {
+	case deck.EdgeCollectionCards:
+		ids := make([]ent.Value, 0, len(m.collection_cards))
+		for id := range m.collection_cards {
+			ids = append(ids, id)
+		}
+		return ids
+	case deck.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.study_events))
+		for id := range m.study_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1374,12 +2771,15 @@ func (m *DeckMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DeckMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedcards != nil {
 		edges = append(edges, deck.EdgeCards)
 	}
-	if m.removednotebook_cards != nil {
-		edges = append(edges, deck.EdgeNotebookCards)
+	if m.removedcollection_cards != nil {
+		edges = append(edges, deck.EdgeCollectionCards)
+	}
+	if m.removedstudy_events != nil {
+		edges = append(edges, deck.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -1394,9 +2794,15 @@ func (m *DeckMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case deck.EdgeNotebookCards:
-		ids := make([]ent.Value, 0, len(m.removednotebook_cards))
-		for id := range m.removednotebook_cards {
+	case deck.EdgeCollectionCards:
+		ids := make([]ent.Value, 0, len(m.removedcollection_cards))
+		for id := range m.removedcollection_cards {
+			ids = append(ids, id)
+		}
+		return ids
+	case deck.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.removedstudy_events))
+		for id := range m.removedstudy_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1406,15 +2812,18 @@ func (m *DeckMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DeckMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedcreator {
 		edges = append(edges, deck.EdgeCreator)
 	}
 	if m.clearedcards {
 		edges = append(edges, deck.EdgeCards)
 	}
-	if m.clearednotebook_cards {
-		edges = append(edges, deck.EdgeNotebookCards)
+	if m.clearedcollection_cards {
+		edges = append(edges, deck.EdgeCollectionCards)
+	}
+	if m.clearedstudy_events {
+		edges = append(edges, deck.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -1427,8 +2836,10 @@ func (m *DeckMutation) EdgeCleared(name string) bool {
 		return m.clearedcreator
 	case deck.EdgeCards:
 		return m.clearedcards
-	case deck.EdgeNotebookCards:
-		return m.clearednotebook_cards
+	case deck.EdgeCollectionCards:
+		return m.clearedcollection_cards
+	case deck.EdgeStudyEvents:
+		return m.clearedstudy_events
 	}
 	return false
 }
@@ -1454,44 +2865,53 @@ func (m *DeckMutation) ResetEdge(name string) error {
 	case deck.EdgeCards:
 		m.ResetCards()
 		return nil
-	case deck.EdgeNotebookCards:
-		m.ResetNotebookCards()
+	case deck.EdgeCollectionCards:
+		m.ResetCollectionCards()
+		return nil
+	case deck.EdgeStudyEvents:
+		m.ResetStudyEvents()
 		return nil
 	}
 	return fmt.Errorf("unknown Deck edge %s", name)
 }
 
-// NotebookMutation represents an operation that mutates the Notebook nodes in the graph.
-type NotebookMutation struct {
+// StudyEventMutation represents an operation that mutates the StudyEvent nodes in the graph.
+type StudyEventMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *string
-	name                  *string
-	created_at            *time.Time
-	updated_at            *time.Time
-	clearedFields         map[string]struct{}
-	creator               *string
-	clearedcreator        bool
-	notebook_cards        map[string]struct{}
-	removednotebook_cards map[string]struct{}
-	clearednotebook_cards bool
-	done                  bool
-	oldValue              func(context.Context) (*Notebook, error)
-	predicates            []predicate.Notebook
+	op                   Op
+	typ                  string
+	id                   *string
+	event_type           *string
+	quality              *int
+	addquality           *int
+	response_time_ns     *int64
+	addresponse_time_ns  *int64
+	created_at           *time.Time
+	clearedFields        map[string]struct{}
+	collection           *string
+	clearedcollection    bool
+	card                 *string
+	clearedcard          bool
+	user                 *string
+	cleareduser          bool
+	previous_deck        *string
+	clearedprevious_deck bool
+	done                 bool
+	oldValue             func(context.Context) (*StudyEvent, error)
+	predicates           []predicate.StudyEvent
 }
 
-var _ ent.Mutation = (*NotebookMutation)(nil)
+var _ ent.Mutation = (*StudyEventMutation)(nil)
 
-// notebookOption allows management of the mutation configuration using functional options.
-type notebookOption func(*NotebookMutation)
+// studyeventOption allows management of the mutation configuration using functional options.
+type studyeventOption func(*StudyEventMutation)
 
-// newNotebookMutation creates new mutation for the Notebook entity.
-func newNotebookMutation(c config, op Op, opts ...notebookOption) *NotebookMutation {
-	m := &NotebookMutation{
+// newStudyEventMutation creates new mutation for the StudyEvent entity.
+func newStudyEventMutation(c config, op Op, opts ...studyeventOption) *StudyEventMutation {
+	m := &StudyEventMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeNotebook,
+		typ:           TypeStudyEvent,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -1500,20 +2920,20 @@ func newNotebookMutation(c config, op Op, opts ...notebookOption) *NotebookMutat
 	return m
 }
 
-// withNotebookID sets the ID field of the mutation.
-func withNotebookID(id string) notebookOption {
-	return func(m *NotebookMutation) {
+// withStudyEventID sets the ID field of the mutation.
+func withStudyEventID(id string) studyeventOption {
+	return func(m *StudyEventMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Notebook
+			value *StudyEvent
 		)
-		m.oldValue = func(ctx context.Context) (*Notebook, error) {
+		m.oldValue = func(ctx context.Context) (*StudyEvent, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Notebook.Get(ctx, id)
+					value, err = m.Client().StudyEvent.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -1522,10 +2942,10 @@ func withNotebookID(id string) notebookOption {
 	}
 }
 
-// withNotebook sets the old Notebook of the mutation.
-func withNotebook(node *Notebook) notebookOption {
-	return func(m *NotebookMutation) {
-		m.oldValue = func(context.Context) (*Notebook, error) {
+// withStudyEvent sets the old StudyEvent of the mutation.
+func withStudyEvent(node *StudyEvent) studyeventOption {
+	return func(m *StudyEventMutation) {
+		m.oldValue = func(context.Context) (*StudyEvent, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -1534,7 +2954,7 @@ func withNotebook(node *Notebook) notebookOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m NotebookMutation) Client() *Client {
+func (m StudyEventMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -1542,7 +2962,7 @@ func (m NotebookMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m NotebookMutation) Tx() (*Tx, error) {
+func (m StudyEventMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -1552,14 +2972,14 @@ func (m NotebookMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Notebook entities.
-func (m *NotebookMutation) SetID(id string) {
+// operation is only accepted on creation of StudyEvent entities.
+func (m *StudyEventMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *NotebookMutation) ID() (id string, exists bool) {
+func (m *StudyEventMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1570,7 +2990,7 @@ func (m *NotebookMutation) ID() (id string, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *NotebookMutation) IDs(ctx context.Context) ([]string, error) {
+func (m *StudyEventMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -1579,611 +2999,195 @@ func (m *NotebookMutation) IDs(ctx context.Context) ([]string, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Notebook.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().StudyEvent.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// SetName sets the "name" field.
-func (m *NotebookMutation) SetName(s string) {
-	m.name = &s
+// SetEventType sets the "event_type" field.
+func (m *StudyEventMutation) SetEventType(s string) {
+	m.event_type = &s
 }
 
-// Name returns the value of the "name" field in the mutation.
-func (m *NotebookMutation) Name() (r string, exists bool) {
-	v := m.name
+// EventType returns the value of the "event_type" field in the mutation.
+func (m *StudyEventMutation) EventType() (r string, exists bool) {
+	v := m.event_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the Notebook entity.
-// If the Notebook object wasn't provided to the builder, the object is fetched from the database.
+// OldEventType returns the old "event_type" field's value of the StudyEvent entity.
+// If the StudyEvent object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotebookMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *StudyEventMutation) OldEventType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
+		return v, errors.New("OldEventType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
+		return v, errors.New("OldEventType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
+		return v, fmt.Errorf("querying old value for OldEventType: %w", err)
 	}
-	return oldValue.Name, nil
+	return oldValue.EventType, nil
 }
 
-// ResetName resets all changes to the "name" field.
-func (m *NotebookMutation) ResetName() {
-	m.name = nil
+// ResetEventType resets all changes to the "event_type" field.
+func (m *StudyEventMutation) ResetEventType() {
+	m.event_type = nil
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (m *NotebookMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
+// SetQuality sets the "quality" field.
+func (m *StudyEventMutation) SetQuality(i int) {
+	m.quality = &i
+	m.addquality = nil
 }
 
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *NotebookMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
+// Quality returns the value of the "quality" field in the mutation.
+func (m *StudyEventMutation) Quality() (r int, exists bool) {
+	v := m.quality
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the Notebook entity.
-// If the Notebook object wasn't provided to the builder, the object is fetched from the database.
+// OldQuality returns the old "quality" field's value of the StudyEvent entity.
+// If the StudyEvent object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotebookMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *StudyEventMutation) OldQuality(ctx context.Context) (v *int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+		return v, errors.New("OldQuality is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+		return v, errors.New("OldQuality requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+		return v, fmt.Errorf("querying old value for OldQuality: %w", err)
 	}
-	return oldValue.CreatedAt, nil
+	return oldValue.Quality, nil
 }
 
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *NotebookMutation) ResetCreatedAt() {
-	m.created_at = nil
+// AddQuality adds i to the "quality" field.
+func (m *StudyEventMutation) AddQuality(i int) {
+	if m.addquality != nil {
+		*m.addquality += i
+	} else {
+		m.addquality = &i
+	}
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (m *NotebookMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *NotebookMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
+// AddedQuality returns the value that was added to the "quality" field in this mutation.
+func (m *StudyEventMutation) AddedQuality() (r int, exists bool) {
+	v := m.addquality
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the Notebook entity.
-// If the Notebook object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotebookMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
+// ClearQuality clears the value of the "quality" field.
+func (m *StudyEventMutation) ClearQuality() {
+	m.quality = nil
+	m.addquality = nil
+	m.clearedFields[studyevent.FieldQuality] = struct{}{}
 }
 
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *NotebookMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetCreatorID sets the "creator" edge to the User entity by id.
-func (m *NotebookMutation) SetCreatorID(id string) {
-	m.creator = &id
-}
-
-// ClearCreator clears the "creator" edge to the User entity.
-func (m *NotebookMutation) ClearCreator() {
-	m.clearedcreator = true
-}
-
-// CreatorCleared reports if the "creator" edge to the User entity was cleared.
-func (m *NotebookMutation) CreatorCleared() bool {
-	return m.clearedcreator
-}
-
-// CreatorID returns the "creator" edge ID in the mutation.
-func (m *NotebookMutation) CreatorID() (id string, exists bool) {
-	if m.creator != nil {
-		return *m.creator, true
-	}
-	return
-}
-
-// CreatorIDs returns the "creator" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CreatorID instead. It exists only for internal usage by the builders.
-func (m *NotebookMutation) CreatorIDs() (ids []string) {
-	if id := m.creator; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetCreator resets all changes to the "creator" edge.
-func (m *NotebookMutation) ResetCreator() {
-	m.creator = nil
-	m.clearedcreator = false
-}
-
-// AddNotebookCardIDs adds the "notebook_cards" edge to the NotebookCard entity by ids.
-func (m *NotebookMutation) AddNotebookCardIDs(ids ...string) {
-	if m.notebook_cards == nil {
-		m.notebook_cards = make(map[string]struct{})
-	}
-	for i := range ids {
-		m.notebook_cards[ids[i]] = struct{}{}
-	}
-}
-
-// ClearNotebookCards clears the "notebook_cards" edge to the NotebookCard entity.
-func (m *NotebookMutation) ClearNotebookCards() {
-	m.clearednotebook_cards = true
-}
-
-// NotebookCardsCleared reports if the "notebook_cards" edge to the NotebookCard entity was cleared.
-func (m *NotebookMutation) NotebookCardsCleared() bool {
-	return m.clearednotebook_cards
-}
-
-// RemoveNotebookCardIDs removes the "notebook_cards" edge to the NotebookCard entity by IDs.
-func (m *NotebookMutation) RemoveNotebookCardIDs(ids ...string) {
-	if m.removednotebook_cards == nil {
-		m.removednotebook_cards = make(map[string]struct{})
-	}
-	for i := range ids {
-		delete(m.notebook_cards, ids[i])
-		m.removednotebook_cards[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedNotebookCards returns the removed IDs of the "notebook_cards" edge to the NotebookCard entity.
-func (m *NotebookMutation) RemovedNotebookCardsIDs() (ids []string) {
-	for id := range m.removednotebook_cards {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// NotebookCardsIDs returns the "notebook_cards" edge IDs in the mutation.
-func (m *NotebookMutation) NotebookCardsIDs() (ids []string) {
-	for id := range m.notebook_cards {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetNotebookCards resets all changes to the "notebook_cards" edge.
-func (m *NotebookMutation) ResetNotebookCards() {
-	m.notebook_cards = nil
-	m.clearednotebook_cards = false
-	m.removednotebook_cards = nil
-}
-
-// Where appends a list predicates to the NotebookMutation builder.
-func (m *NotebookMutation) Where(ps ...predicate.Notebook) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the NotebookMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *NotebookMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Notebook, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *NotebookMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *NotebookMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Notebook).
-func (m *NotebookMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *NotebookMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.name != nil {
-		fields = append(fields, notebook.FieldName)
-	}
-	if m.created_at != nil {
-		fields = append(fields, notebook.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, notebook.FieldUpdatedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *NotebookMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case notebook.FieldName:
-		return m.Name()
-	case notebook.FieldCreatedAt:
-		return m.CreatedAt()
-	case notebook.FieldUpdatedAt:
-		return m.UpdatedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *NotebookMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case notebook.FieldName:
-		return m.OldName(ctx)
-	case notebook.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case notebook.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown Notebook field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *NotebookMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case notebook.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case notebook.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case notebook.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Notebook field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *NotebookMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *NotebookMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *NotebookMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Notebook numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *NotebookMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *NotebookMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
+// QualityCleared returns if the "quality" field was cleared in this mutation.
+func (m *StudyEventMutation) QualityCleared() bool {
+	_, ok := m.clearedFields[studyevent.FieldQuality]
 	return ok
 }
 
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *NotebookMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Notebook nullable field %s", name)
+// ResetQuality resets all changes to the "quality" field.
+func (m *StudyEventMutation) ResetQuality() {
+	m.quality = nil
+	m.addquality = nil
+	delete(m.clearedFields, studyevent.FieldQuality)
 }
 
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *NotebookMutation) ResetField(name string) error {
-	switch name {
-	case notebook.FieldName:
-		m.ResetName()
-		return nil
-	case notebook.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case notebook.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown Notebook field %s", name)
+// SetResponseTimeNs sets the "response_time_ns" field.
+func (m *StudyEventMutation) SetResponseTimeNs(i int64) {
+	m.response_time_ns = &i
+	m.addresponse_time_ns = nil
 }
 
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *NotebookMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.creator != nil {
-		edges = append(edges, notebook.EdgeCreator)
-	}
-	if m.notebook_cards != nil {
-		edges = append(edges, notebook.EdgeNotebookCards)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *NotebookMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case notebook.EdgeCreator:
-		if id := m.creator; id != nil {
-			return []ent.Value{*id}
-		}
-	case notebook.EdgeNotebookCards:
-		ids := make([]ent.Value, 0, len(m.notebook_cards))
-		for id := range m.notebook_cards {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *NotebookMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removednotebook_cards != nil {
-		edges = append(edges, notebook.EdgeNotebookCards)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *NotebookMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case notebook.EdgeNotebookCards:
-		ids := make([]ent.Value, 0, len(m.removednotebook_cards))
-		for id := range m.removednotebook_cards {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *NotebookMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedcreator {
-		edges = append(edges, notebook.EdgeCreator)
-	}
-	if m.clearednotebook_cards {
-		edges = append(edges, notebook.EdgeNotebookCards)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *NotebookMutation) EdgeCleared(name string) bool {
-	switch name {
-	case notebook.EdgeCreator:
-		return m.clearedcreator
-	case notebook.EdgeNotebookCards:
-		return m.clearednotebook_cards
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *NotebookMutation) ClearEdge(name string) error {
-	switch name {
-	case notebook.EdgeCreator:
-		m.ClearCreator()
-		return nil
-	}
-	return fmt.Errorf("unknown Notebook unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *NotebookMutation) ResetEdge(name string) error {
-	switch name {
-	case notebook.EdgeCreator:
-		m.ResetCreator()
-		return nil
-	case notebook.EdgeNotebookCards:
-		m.ResetNotebookCards()
-		return nil
-	}
-	return fmt.Errorf("unknown Notebook edge %s", name)
-}
-
-// NotebookCardMutation represents an operation that mutates the NotebookCard nodes in the graph.
-type NotebookCardMutation struct {
-	config
-	op              Op
-	typ             string
-	id              *string
-	created_at      *time.Time
-	updated_at      *time.Time
-	clearedFields   map[string]struct{}
-	notebook        *string
-	clearednotebook bool
-	card            *string
-	clearedcard     bool
-	deck            *string
-	cleareddeck     bool
-	done            bool
-	oldValue        func(context.Context) (*NotebookCard, error)
-	predicates      []predicate.NotebookCard
-}
-
-var _ ent.Mutation = (*NotebookCardMutation)(nil)
-
-// notebookcardOption allows management of the mutation configuration using functional options.
-type notebookcardOption func(*NotebookCardMutation)
-
-// newNotebookCardMutation creates new mutation for the NotebookCard entity.
-func newNotebookCardMutation(c config, op Op, opts ...notebookcardOption) *NotebookCardMutation {
-	m := &NotebookCardMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeNotebookCard,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withNotebookCardID sets the ID field of the mutation.
-func withNotebookCardID(id string) notebookcardOption {
-	return func(m *NotebookCardMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *NotebookCard
-		)
-		m.oldValue = func(ctx context.Context) (*NotebookCard, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().NotebookCard.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withNotebookCard sets the old NotebookCard of the mutation.
-func withNotebookCard(node *NotebookCard) notebookcardOption {
-	return func(m *NotebookCardMutation) {
-		m.oldValue = func(context.Context) (*NotebookCard, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m NotebookCardMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m NotebookCardMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of NotebookCard entities.
-func (m *NotebookCardMutation) SetID(id string) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *NotebookCardMutation) ID() (id string, exists bool) {
-	if m.id == nil {
+// ResponseTimeNs returns the value of the "response_time_ns" field in the mutation.
+func (m *StudyEventMutation) ResponseTimeNs() (r int64, exists bool) {
+	v := m.response_time_ns
+	if v == nil {
 		return
 	}
-	return *m.id, true
+	return *v, true
 }
 
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *NotebookCardMutation) IDs(ctx context.Context) ([]string, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []string{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().NotebookCard.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+// OldResponseTimeNs returns the old "response_time_ns" field's value of the StudyEvent entity.
+// If the StudyEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StudyEventMutation) OldResponseTimeNs(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseTimeNs is only allowed on UpdateOne operations")
 	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseTimeNs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseTimeNs: %w", err)
+	}
+	return oldValue.ResponseTimeNs, nil
+}
+
+// AddResponseTimeNs adds i to the "response_time_ns" field.
+func (m *StudyEventMutation) AddResponseTimeNs(i int64) {
+	if m.addresponse_time_ns != nil {
+		*m.addresponse_time_ns += i
+	} else {
+		m.addresponse_time_ns = &i
+	}
+}
+
+// AddedResponseTimeNs returns the value that was added to the "response_time_ns" field in this mutation.
+func (m *StudyEventMutation) AddedResponseTimeNs() (r int64, exists bool) {
+	v := m.addresponse_time_ns
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearResponseTimeNs clears the value of the "response_time_ns" field.
+func (m *StudyEventMutation) ClearResponseTimeNs() {
+	m.response_time_ns = nil
+	m.addresponse_time_ns = nil
+	m.clearedFields[studyevent.FieldResponseTimeNs] = struct{}{}
+}
+
+// ResponseTimeNsCleared returns if the "response_time_ns" field was cleared in this mutation.
+func (m *StudyEventMutation) ResponseTimeNsCleared() bool {
+	_, ok := m.clearedFields[studyevent.FieldResponseTimeNs]
+	return ok
+}
+
+// ResetResponseTimeNs resets all changes to the "response_time_ns" field.
+func (m *StudyEventMutation) ResetResponseTimeNs() {
+	m.response_time_ns = nil
+	m.addresponse_time_ns = nil
+	delete(m.clearedFields, studyevent.FieldResponseTimeNs)
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *NotebookCardMutation) SetCreatedAt(t time.Time) {
+func (m *StudyEventMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *NotebookCardMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *StudyEventMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -2191,10 +3195,10 @@ func (m *NotebookCardMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the NotebookCard entity.
-// If the NotebookCard object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the StudyEvent entity.
+// If the StudyEvent object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotebookCardMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *StudyEventMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -2209,102 +3213,66 @@ func (m *NotebookCardMutation) OldCreatedAt(ctx context.Context) (v time.Time, e
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *NotebookCardMutation) ResetCreatedAt() {
+func (m *StudyEventMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (m *NotebookCardMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
+// SetCollectionID sets the "collection" edge to the Collection entity by id.
+func (m *StudyEventMutation) SetCollectionID(id string) {
+	m.collection = &id
 }
 
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *NotebookCardMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
+// ClearCollection clears the "collection" edge to the Collection entity.
+func (m *StudyEventMutation) ClearCollection() {
+	m.clearedcollection = true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the NotebookCard entity.
-// If the NotebookCard object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotebookCardMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
+// CollectionCleared reports if the "collection" edge to the Collection entity was cleared.
+func (m *StudyEventMutation) CollectionCleared() bool {
+	return m.clearedcollection
 }
 
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *NotebookCardMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetNotebookID sets the "notebook" edge to the Notebook entity by id.
-func (m *NotebookCardMutation) SetNotebookID(id string) {
-	m.notebook = &id
-}
-
-// ClearNotebook clears the "notebook" edge to the Notebook entity.
-func (m *NotebookCardMutation) ClearNotebook() {
-	m.clearednotebook = true
-}
-
-// NotebookCleared reports if the "notebook" edge to the Notebook entity was cleared.
-func (m *NotebookCardMutation) NotebookCleared() bool {
-	return m.clearednotebook
-}
-
-// NotebookID returns the "notebook" edge ID in the mutation.
-func (m *NotebookCardMutation) NotebookID() (id string, exists bool) {
-	if m.notebook != nil {
-		return *m.notebook, true
+// CollectionID returns the "collection" edge ID in the mutation.
+func (m *StudyEventMutation) CollectionID() (id string, exists bool) {
+	if m.collection != nil {
+		return *m.collection, true
 	}
 	return
 }
 
-// NotebookIDs returns the "notebook" edge IDs in the mutation.
+// CollectionIDs returns the "collection" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// NotebookID instead. It exists only for internal usage by the builders.
-func (m *NotebookCardMutation) NotebookIDs() (ids []string) {
-	if id := m.notebook; id != nil {
+// CollectionID instead. It exists only for internal usage by the builders.
+func (m *StudyEventMutation) CollectionIDs() (ids []string) {
+	if id := m.collection; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetNotebook resets all changes to the "notebook" edge.
-func (m *NotebookCardMutation) ResetNotebook() {
-	m.notebook = nil
-	m.clearednotebook = false
+// ResetCollection resets all changes to the "collection" edge.
+func (m *StudyEventMutation) ResetCollection() {
+	m.collection = nil
+	m.clearedcollection = false
 }
 
 // SetCardID sets the "card" edge to the Card entity by id.
-func (m *NotebookCardMutation) SetCardID(id string) {
+func (m *StudyEventMutation) SetCardID(id string) {
 	m.card = &id
 }
 
 // ClearCard clears the "card" edge to the Card entity.
-func (m *NotebookCardMutation) ClearCard() {
+func (m *StudyEventMutation) ClearCard() {
 	m.clearedcard = true
 }
 
 // CardCleared reports if the "card" edge to the Card entity was cleared.
-func (m *NotebookCardMutation) CardCleared() bool {
+func (m *StudyEventMutation) CardCleared() bool {
 	return m.clearedcard
 }
 
 // CardID returns the "card" edge ID in the mutation.
-func (m *NotebookCardMutation) CardID() (id string, exists bool) {
+func (m *StudyEventMutation) CardID() (id string, exists bool) {
 	if m.card != nil {
 		return *m.card, true
 	}
@@ -2314,7 +3282,7 @@ func (m *NotebookCardMutation) CardID() (id string, exists bool) {
 // CardIDs returns the "card" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // CardID instead. It exists only for internal usage by the builders.
-func (m *NotebookCardMutation) CardIDs() (ids []string) {
+func (m *StudyEventMutation) CardIDs() (ids []string) {
 	if id := m.card; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2322,59 +3290,98 @@ func (m *NotebookCardMutation) CardIDs() (ids []string) {
 }
 
 // ResetCard resets all changes to the "card" edge.
-func (m *NotebookCardMutation) ResetCard() {
+func (m *StudyEventMutation) ResetCard() {
 	m.card = nil
 	m.clearedcard = false
 }
 
-// SetDeckID sets the "deck" edge to the Deck entity by id.
-func (m *NotebookCardMutation) SetDeckID(id string) {
-	m.deck = &id
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *StudyEventMutation) SetUserID(id string) {
+	m.user = &id
 }
 
-// ClearDeck clears the "deck" edge to the Deck entity.
-func (m *NotebookCardMutation) ClearDeck() {
-	m.cleareddeck = true
+// ClearUser clears the "user" edge to the User entity.
+func (m *StudyEventMutation) ClearUser() {
+	m.cleareduser = true
 }
 
-// DeckCleared reports if the "deck" edge to the Deck entity was cleared.
-func (m *NotebookCardMutation) DeckCleared() bool {
-	return m.cleareddeck
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *StudyEventMutation) UserCleared() bool {
+	return m.cleareduser
 }
 
-// DeckID returns the "deck" edge ID in the mutation.
-func (m *NotebookCardMutation) DeckID() (id string, exists bool) {
-	if m.deck != nil {
-		return *m.deck, true
+// UserID returns the "user" edge ID in the mutation.
+func (m *StudyEventMutation) UserID() (id string, exists bool) {
+	if m.user != nil {
+		return *m.user, true
 	}
 	return
 }
 
-// DeckIDs returns the "deck" edge IDs in the mutation.
+// UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// DeckID instead. It exists only for internal usage by the builders.
-func (m *NotebookCardMutation) DeckIDs() (ids []string) {
-	if id := m.deck; id != nil {
+// UserID instead. It exists only for internal usage by the builders.
+func (m *StudyEventMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetDeck resets all changes to the "deck" edge.
-func (m *NotebookCardMutation) ResetDeck() {
-	m.deck = nil
-	m.cleareddeck = false
+// ResetUser resets all changes to the "user" edge.
+func (m *StudyEventMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
 }
 
-// Where appends a list predicates to the NotebookCardMutation builder.
-func (m *NotebookCardMutation) Where(ps ...predicate.NotebookCard) {
+// SetPreviousDeckID sets the "previous_deck" edge to the Deck entity by id.
+func (m *StudyEventMutation) SetPreviousDeckID(id string) {
+	m.previous_deck = &id
+}
+
+// ClearPreviousDeck clears the "previous_deck" edge to the Deck entity.
+func (m *StudyEventMutation) ClearPreviousDeck() {
+	m.clearedprevious_deck = true
+}
+
+// PreviousDeckCleared reports if the "previous_deck" edge to the Deck entity was cleared.
+func (m *StudyEventMutation) PreviousDeckCleared() bool {
+	return m.clearedprevious_deck
+}
+
+// PreviousDeckID returns the "previous_deck" edge ID in the mutation.
+func (m *StudyEventMutation) PreviousDeckID() (id string, exists bool) {
+	if m.previous_deck != nil {
+		return *m.previous_deck, true
+	}
+	return
+}
+
+// PreviousDeckIDs returns the "previous_deck" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PreviousDeckID instead. It exists only for internal usage by the builders.
+func (m *StudyEventMutation) PreviousDeckIDs() (ids []string) {
+	if id := m.previous_deck; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPreviousDeck resets all changes to the "previous_deck" edge.
+func (m *StudyEventMutation) ResetPreviousDeck() {
+	m.previous_deck = nil
+	m.clearedprevious_deck = false
+}
+
+// Where appends a list predicates to the StudyEventMutation builder.
+func (m *StudyEventMutation) Where(ps ...predicate.StudyEvent) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the NotebookCardMutation builder. Using this method,
+// WhereP appends storage-level predicates to the StudyEventMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *NotebookCardMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.NotebookCard, len(ps))
+func (m *StudyEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.StudyEvent, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -2382,30 +3389,36 @@ func (m *NotebookCardMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *NotebookCardMutation) Op() Op {
+func (m *StudyEventMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *NotebookCardMutation) SetOp(op Op) {
+func (m *StudyEventMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (NotebookCard).
-func (m *NotebookCardMutation) Type() string {
+// Type returns the node type of this mutation (StudyEvent).
+func (m *StudyEventMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *NotebookCardMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.created_at != nil {
-		fields = append(fields, notebookcard.FieldCreatedAt)
+func (m *StudyEventMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.event_type != nil {
+		fields = append(fields, studyevent.FieldEventType)
 	}
-	if m.updated_at != nil {
-		fields = append(fields, notebookcard.FieldUpdatedAt)
+	if m.quality != nil {
+		fields = append(fields, studyevent.FieldQuality)
+	}
+	if m.response_time_ns != nil {
+		fields = append(fields, studyevent.FieldResponseTimeNs)
+	}
+	if m.created_at != nil {
+		fields = append(fields, studyevent.FieldCreatedAt)
 	}
 	return fields
 }
@@ -2413,12 +3426,16 @@ func (m *NotebookCardMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *NotebookCardMutation) Field(name string) (ent.Value, bool) {
+func (m *StudyEventMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case notebookcard.FieldCreatedAt:
+	case studyevent.FieldEventType:
+		return m.EventType()
+	case studyevent.FieldQuality:
+		return m.Quality()
+	case studyevent.FieldResponseTimeNs:
+		return m.ResponseTimeNs()
+	case studyevent.FieldCreatedAt:
 		return m.CreatedAt()
-	case notebookcard.FieldUpdatedAt:
-		return m.UpdatedAt()
 	}
 	return nil, false
 }
@@ -2426,123 +3443,196 @@ func (m *NotebookCardMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *NotebookCardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *StudyEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case notebookcard.FieldCreatedAt:
+	case studyevent.FieldEventType:
+		return m.OldEventType(ctx)
+	case studyevent.FieldQuality:
+		return m.OldQuality(ctx)
+	case studyevent.FieldResponseTimeNs:
+		return m.OldResponseTimeNs(ctx)
+	case studyevent.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case notebookcard.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown NotebookCard field %s", name)
+	return nil, fmt.Errorf("unknown StudyEvent field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *NotebookCardMutation) SetField(name string, value ent.Value) error {
+func (m *StudyEventMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case notebookcard.FieldCreatedAt:
+	case studyevent.FieldEventType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEventType(v)
+		return nil
+	case studyevent.FieldQuality:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuality(v)
+		return nil
+	case studyevent.FieldResponseTimeNs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseTimeNs(v)
+		return nil
+	case studyevent.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case notebookcard.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
 	}
-	return fmt.Errorf("unknown NotebookCard field %s", name)
+	return fmt.Errorf("unknown StudyEvent field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *NotebookCardMutation) AddedFields() []string {
-	return nil
+func (m *StudyEventMutation) AddedFields() []string {
+	var fields []string
+	if m.addquality != nil {
+		fields = append(fields, studyevent.FieldQuality)
+	}
+	if m.addresponse_time_ns != nil {
+		fields = append(fields, studyevent.FieldResponseTimeNs)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *NotebookCardMutation) AddedField(name string) (ent.Value, bool) {
+func (m *StudyEventMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case studyevent.FieldQuality:
+		return m.AddedQuality()
+	case studyevent.FieldResponseTimeNs:
+		return m.AddedResponseTimeNs()
+	}
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *NotebookCardMutation) AddField(name string, value ent.Value) error {
+func (m *StudyEventMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case studyevent.FieldQuality:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuality(v)
+		return nil
+	case studyevent.FieldResponseTimeNs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResponseTimeNs(v)
+		return nil
 	}
-	return fmt.Errorf("unknown NotebookCard numeric field %s", name)
+	return fmt.Errorf("unknown StudyEvent numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *NotebookCardMutation) ClearedFields() []string {
-	return nil
+func (m *StudyEventMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(studyevent.FieldQuality) {
+		fields = append(fields, studyevent.FieldQuality)
+	}
+	if m.FieldCleared(studyevent.FieldResponseTimeNs) {
+		fields = append(fields, studyevent.FieldResponseTimeNs)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *NotebookCardMutation) FieldCleared(name string) bool {
+func (m *StudyEventMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *NotebookCardMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown NotebookCard nullable field %s", name)
+func (m *StudyEventMutation) ClearField(name string) error {
+	switch name {
+	case studyevent.FieldQuality:
+		m.ClearQuality()
+		return nil
+	case studyevent.FieldResponseTimeNs:
+		m.ClearResponseTimeNs()
+		return nil
+	}
+	return fmt.Errorf("unknown StudyEvent nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *NotebookCardMutation) ResetField(name string) error {
+func (m *StudyEventMutation) ResetField(name string) error {
 	switch name {
-	case notebookcard.FieldCreatedAt:
+	case studyevent.FieldEventType:
+		m.ResetEventType()
+		return nil
+	case studyevent.FieldQuality:
+		m.ResetQuality()
+		return nil
+	case studyevent.FieldResponseTimeNs:
+		m.ResetResponseTimeNs()
+		return nil
+	case studyevent.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case notebookcard.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
 	}
-	return fmt.Errorf("unknown NotebookCard field %s", name)
+	return fmt.Errorf("unknown StudyEvent field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *NotebookCardMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.notebook != nil {
-		edges = append(edges, notebookcard.EdgeNotebook)
+func (m *StudyEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.collection != nil {
+		edges = append(edges, studyevent.EdgeCollection)
 	}
 	if m.card != nil {
-		edges = append(edges, notebookcard.EdgeCard)
+		edges = append(edges, studyevent.EdgeCard)
 	}
-	if m.deck != nil {
-		edges = append(edges, notebookcard.EdgeDeck)
+	if m.user != nil {
+		edges = append(edges, studyevent.EdgeUser)
+	}
+	if m.previous_deck != nil {
+		edges = append(edges, studyevent.EdgePreviousDeck)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *NotebookCardMutation) AddedIDs(name string) []ent.Value {
+func (m *StudyEventMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case notebookcard.EdgeNotebook:
-		if id := m.notebook; id != nil {
+	case studyevent.EdgeCollection:
+		if id := m.collection; id != nil {
 			return []ent.Value{*id}
 		}
-	case notebookcard.EdgeCard:
+	case studyevent.EdgeCard:
 		if id := m.card; id != nil {
 			return []ent.Value{*id}
 		}
-	case notebookcard.EdgeDeck:
-		if id := m.deck; id != nil {
+	case studyevent.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case studyevent.EdgePreviousDeck:
+		if id := m.previous_deck; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -2550,103 +3640,117 @@ func (m *NotebookCardMutation) AddedIDs(name string) []ent.Value {
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *NotebookCardMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+func (m *StudyEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *NotebookCardMutation) RemovedIDs(name string) []ent.Value {
+func (m *StudyEventMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *NotebookCardMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.clearednotebook {
-		edges = append(edges, notebookcard.EdgeNotebook)
+func (m *StudyEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedcollection {
+		edges = append(edges, studyevent.EdgeCollection)
 	}
 	if m.clearedcard {
-		edges = append(edges, notebookcard.EdgeCard)
+		edges = append(edges, studyevent.EdgeCard)
 	}
-	if m.cleareddeck {
-		edges = append(edges, notebookcard.EdgeDeck)
+	if m.cleareduser {
+		edges = append(edges, studyevent.EdgeUser)
+	}
+	if m.clearedprevious_deck {
+		edges = append(edges, studyevent.EdgePreviousDeck)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *NotebookCardMutation) EdgeCleared(name string) bool {
+func (m *StudyEventMutation) EdgeCleared(name string) bool {
 	switch name {
-	case notebookcard.EdgeNotebook:
-		return m.clearednotebook
-	case notebookcard.EdgeCard:
+	case studyevent.EdgeCollection:
+		return m.clearedcollection
+	case studyevent.EdgeCard:
 		return m.clearedcard
-	case notebookcard.EdgeDeck:
-		return m.cleareddeck
+	case studyevent.EdgeUser:
+		return m.cleareduser
+	case studyevent.EdgePreviousDeck:
+		return m.clearedprevious_deck
 	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *NotebookCardMutation) ClearEdge(name string) error {
+func (m *StudyEventMutation) ClearEdge(name string) error {
 	switch name {
-	case notebookcard.EdgeNotebook:
-		m.ClearNotebook()
+	case studyevent.EdgeCollection:
+		m.ClearCollection()
 		return nil
-	case notebookcard.EdgeCard:
+	case studyevent.EdgeCard:
 		m.ClearCard()
 		return nil
-	case notebookcard.EdgeDeck:
-		m.ClearDeck()
+	case studyevent.EdgeUser:
+		m.ClearUser()
+		return nil
+	case studyevent.EdgePreviousDeck:
+		m.ClearPreviousDeck()
 		return nil
 	}
-	return fmt.Errorf("unknown NotebookCard unique edge %s", name)
+	return fmt.Errorf("unknown StudyEvent unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *NotebookCardMutation) ResetEdge(name string) error {
+func (m *StudyEventMutation) ResetEdge(name string) error {
 	switch name {
-	case notebookcard.EdgeNotebook:
-		m.ResetNotebook()
+	case studyevent.EdgeCollection:
+		m.ResetCollection()
 		return nil
-	case notebookcard.EdgeCard:
+	case studyevent.EdgeCard:
 		m.ResetCard()
 		return nil
-	case notebookcard.EdgeDeck:
-		m.ResetDeck()
+	case studyevent.EdgeUser:
+		m.ResetUser()
+		return nil
+	case studyevent.EdgePreviousDeck:
+		m.ResetPreviousDeck()
 		return nil
 	}
-	return fmt.Errorf("unknown NotebookCard edge %s", name)
+	return fmt.Errorf("unknown StudyEvent edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *string
-	nickname         *string
-	provider_id      *string
-	created_at       *time.Time
-	updated_at       *time.Time
-	clearedFields    map[string]struct{}
-	cards            map[string]struct{}
-	removedcards     map[string]struct{}
-	clearedcards     bool
-	decks            map[string]struct{}
-	removeddecks     map[string]struct{}
-	cleareddecks     bool
-	notebooks        map[string]struct{}
-	removednotebooks map[string]struct{}
-	clearednotebooks bool
-	done             bool
-	oldValue         func(context.Context) (*User, error)
-	predicates       []predicate.User
+	op                  Op
+	typ                 string
+	id                  *string
+	nickname            *string
+	provider_id         *string
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	cards               map[string]struct{}
+	removedcards        map[string]struct{}
+	clearedcards        bool
+	decks               map[string]struct{}
+	removeddecks        map[string]struct{}
+	cleareddecks        bool
+	collections         map[string]struct{}
+	removedcollections  map[string]struct{}
+	clearedcollections  bool
+	study_events        map[string]struct{}
+	removedstudy_events map[string]struct{}
+	clearedstudy_events bool
+	done                bool
+	oldValue            func(context.Context) (*User, error)
+	predicates          []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -3005,58 +4109,112 @@ func (m *UserMutation) ResetDecks() {
 	m.removeddecks = nil
 }
 
-// AddNotebookIDs adds the "notebooks" edge to the Notebook entity by ids.
-func (m *UserMutation) AddNotebookIDs(ids ...string) {
-	if m.notebooks == nil {
-		m.notebooks = make(map[string]struct{})
+// AddCollectionIDs adds the "collections" edge to the Collection entity by ids.
+func (m *UserMutation) AddCollectionIDs(ids ...string) {
+	if m.collections == nil {
+		m.collections = make(map[string]struct{})
 	}
 	for i := range ids {
-		m.notebooks[ids[i]] = struct{}{}
+		m.collections[ids[i]] = struct{}{}
 	}
 }
 
-// ClearNotebooks clears the "notebooks" edge to the Notebook entity.
-func (m *UserMutation) ClearNotebooks() {
-	m.clearednotebooks = true
+// ClearCollections clears the "collections" edge to the Collection entity.
+func (m *UserMutation) ClearCollections() {
+	m.clearedcollections = true
 }
 
-// NotebooksCleared reports if the "notebooks" edge to the Notebook entity was cleared.
-func (m *UserMutation) NotebooksCleared() bool {
-	return m.clearednotebooks
+// CollectionsCleared reports if the "collections" edge to the Collection entity was cleared.
+func (m *UserMutation) CollectionsCleared() bool {
+	return m.clearedcollections
 }
 
-// RemoveNotebookIDs removes the "notebooks" edge to the Notebook entity by IDs.
-func (m *UserMutation) RemoveNotebookIDs(ids ...string) {
-	if m.removednotebooks == nil {
-		m.removednotebooks = make(map[string]struct{})
+// RemoveCollectionIDs removes the "collections" edge to the Collection entity by IDs.
+func (m *UserMutation) RemoveCollectionIDs(ids ...string) {
+	if m.removedcollections == nil {
+		m.removedcollections = make(map[string]struct{})
 	}
 	for i := range ids {
-		delete(m.notebooks, ids[i])
-		m.removednotebooks[ids[i]] = struct{}{}
+		delete(m.collections, ids[i])
+		m.removedcollections[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedNotebooks returns the removed IDs of the "notebooks" edge to the Notebook entity.
-func (m *UserMutation) RemovedNotebooksIDs() (ids []string) {
-	for id := range m.removednotebooks {
+// RemovedCollections returns the removed IDs of the "collections" edge to the Collection entity.
+func (m *UserMutation) RemovedCollectionsIDs() (ids []string) {
+	for id := range m.removedcollections {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// NotebooksIDs returns the "notebooks" edge IDs in the mutation.
-func (m *UserMutation) NotebooksIDs() (ids []string) {
-	for id := range m.notebooks {
+// CollectionsIDs returns the "collections" edge IDs in the mutation.
+func (m *UserMutation) CollectionsIDs() (ids []string) {
+	for id := range m.collections {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetNotebooks resets all changes to the "notebooks" edge.
-func (m *UserMutation) ResetNotebooks() {
-	m.notebooks = nil
-	m.clearednotebooks = false
-	m.removednotebooks = nil
+// ResetCollections resets all changes to the "collections" edge.
+func (m *UserMutation) ResetCollections() {
+	m.collections = nil
+	m.clearedcollections = false
+	m.removedcollections = nil
+}
+
+// AddStudyEventIDs adds the "study_events" edge to the StudyEvent entity by ids.
+func (m *UserMutation) AddStudyEventIDs(ids ...string) {
+	if m.study_events == nil {
+		m.study_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.study_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStudyEvents clears the "study_events" edge to the StudyEvent entity.
+func (m *UserMutation) ClearStudyEvents() {
+	m.clearedstudy_events = true
+}
+
+// StudyEventsCleared reports if the "study_events" edge to the StudyEvent entity was cleared.
+func (m *UserMutation) StudyEventsCleared() bool {
+	return m.clearedstudy_events
+}
+
+// RemoveStudyEventIDs removes the "study_events" edge to the StudyEvent entity by IDs.
+func (m *UserMutation) RemoveStudyEventIDs(ids ...string) {
+	if m.removedstudy_events == nil {
+		m.removedstudy_events = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.study_events, ids[i])
+		m.removedstudy_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStudyEvents returns the removed IDs of the "study_events" edge to the StudyEvent entity.
+func (m *UserMutation) RemovedStudyEventsIDs() (ids []string) {
+	for id := range m.removedstudy_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StudyEventsIDs returns the "study_events" edge IDs in the mutation.
+func (m *UserMutation) StudyEventsIDs() (ids []string) {
+	for id := range m.study_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStudyEvents resets all changes to the "study_events" edge.
+func (m *UserMutation) ResetStudyEvents() {
+	m.study_events = nil
+	m.clearedstudy_events = false
+	m.removedstudy_events = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -3243,15 +4401,18 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.cards != nil {
 		edges = append(edges, user.EdgeCards)
 	}
 	if m.decks != nil {
 		edges = append(edges, user.EdgeDecks)
 	}
-	if m.notebooks != nil {
-		edges = append(edges, user.EdgeNotebooks)
+	if m.collections != nil {
+		edges = append(edges, user.EdgeCollections)
+	}
+	if m.study_events != nil {
+		edges = append(edges, user.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -3272,9 +4433,15 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeNotebooks:
-		ids := make([]ent.Value, 0, len(m.notebooks))
-		for id := range m.notebooks {
+	case user.EdgeCollections:
+		ids := make([]ent.Value, 0, len(m.collections))
+		for id := range m.collections {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.study_events))
+		for id := range m.study_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3284,15 +4451,18 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedcards != nil {
 		edges = append(edges, user.EdgeCards)
 	}
 	if m.removeddecks != nil {
 		edges = append(edges, user.EdgeDecks)
 	}
-	if m.removednotebooks != nil {
-		edges = append(edges, user.EdgeNotebooks)
+	if m.removedcollections != nil {
+		edges = append(edges, user.EdgeCollections)
+	}
+	if m.removedstudy_events != nil {
+		edges = append(edges, user.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -3313,9 +4483,15 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeNotebooks:
-		ids := make([]ent.Value, 0, len(m.removednotebooks))
-		for id := range m.removednotebooks {
+	case user.EdgeCollections:
+		ids := make([]ent.Value, 0, len(m.removedcollections))
+		for id := range m.removedcollections {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeStudyEvents:
+		ids := make([]ent.Value, 0, len(m.removedstudy_events))
+		for id := range m.removedstudy_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3325,15 +4501,18 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedcards {
 		edges = append(edges, user.EdgeCards)
 	}
 	if m.cleareddecks {
 		edges = append(edges, user.EdgeDecks)
 	}
-	if m.clearednotebooks {
-		edges = append(edges, user.EdgeNotebooks)
+	if m.clearedcollections {
+		edges = append(edges, user.EdgeCollections)
+	}
+	if m.clearedstudy_events {
+		edges = append(edges, user.EdgeStudyEvents)
 	}
 	return edges
 }
@@ -3346,8 +4525,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcards
 	case user.EdgeDecks:
 		return m.cleareddecks
-	case user.EdgeNotebooks:
-		return m.clearednotebooks
+	case user.EdgeCollections:
+		return m.clearedcollections
+	case user.EdgeStudyEvents:
+		return m.clearedstudy_events
 	}
 	return false
 }
@@ -3370,8 +4551,11 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeDecks:
 		m.ResetDecks()
 		return nil
-	case user.EdgeNotebooks:
-		m.ResetNotebooks()
+	case user.EdgeCollections:
+		m.ResetCollections()
+		return nil
+	case user.EdgeStudyEvents:
+		m.ResetStudyEvents()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

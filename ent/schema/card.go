@@ -32,6 +32,7 @@ func (Card) Edges() []ent.Edge {
 			Unique().
 			Required(),
 		edge.To("decks", Deck.Type),
-		edge.To("notebook_cards", NotebookCard.Type),
+		edge.To("collection_cards", CollectionCard.Type),
+		edge.To("study_events", StudyEvent.Type),
 	}
 }

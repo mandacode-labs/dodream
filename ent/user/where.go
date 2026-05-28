@@ -341,21 +341,44 @@ func HasDecksWith(preds ...predicate.Deck) predicate.User {
 	})
 }
 
-// HasNotebooks applies the HasEdge predicate on the "notebooks" edge.
-func HasNotebooks() predicate.User {
+// HasCollections applies the HasEdge predicate on the "collections" edge.
+func HasCollections() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, NotebooksTable, NotebooksColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, CollectionsTable, CollectionsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNotebooksWith applies the HasEdge predicate on the "notebooks" edge with a given conditions (other predicates).
-func HasNotebooksWith(preds ...predicate.Notebook) predicate.User {
+// HasCollectionsWith applies the HasEdge predicate on the "collections" edge with a given conditions (other predicates).
+func HasCollectionsWith(preds ...predicate.Collection) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newNotebooksStep()
+		step := newCollectionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasStudyEvents applies the HasEdge predicate on the "study_events" edge.
+func HasStudyEvents() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StudyEventsTable, StudyEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStudyEventsWith applies the HasEdge predicate on the "study_events" edge with a given conditions (other predicates).
+func HasStudyEventsWith(preds ...predicate.StudyEvent) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newStudyEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

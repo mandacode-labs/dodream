@@ -16,9 +16,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -29,12 +30,14 @@ type Client struct {
 	Schema *migrate.Schema
 	// Card is the client for interacting with the Card builders.
 	Card *CardClient
+	// Collection is the client for interacting with the Collection builders.
+	Collection *CollectionClient
+	// CollectionCard is the client for interacting with the CollectionCard builders.
+	CollectionCard *CollectionCardClient
 	// Deck is the client for interacting with the Deck builders.
 	Deck *DeckClient
-	// Notebook is the client for interacting with the Notebook builders.
-	Notebook *NotebookClient
-	// NotebookCard is the client for interacting with the NotebookCard builders.
-	NotebookCard *NotebookCardClient
+	// StudyEvent is the client for interacting with the StudyEvent builders.
+	StudyEvent *StudyEventClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -49,9 +52,10 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Card = NewCardClient(c.config)
+	c.Collection = NewCollectionClient(c.config)
+	c.CollectionCard = NewCollectionCardClient(c.config)
 	c.Deck = NewDeckClient(c.config)
-	c.Notebook = NewNotebookClient(c.config)
-	c.NotebookCard = NewNotebookCardClient(c.config)
+	c.StudyEvent = NewStudyEventClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -143,13 +147,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Card:         NewCardClient(cfg),
-		Deck:         NewDeckClient(cfg),
-		Notebook:     NewNotebookClient(cfg),
-		NotebookCard: NewNotebookCardClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		Card:           NewCardClient(cfg),
+		Collection:     NewCollectionClient(cfg),
+		CollectionCard: NewCollectionCardClient(cfg),
+		Deck:           NewDeckClient(cfg),
+		StudyEvent:     NewStudyEventClient(cfg),
+		User:           NewUserClient(cfg),
 	}, nil
 }
 
@@ -167,13 +172,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Card:         NewCardClient(cfg),
-		Deck:         NewDeckClient(cfg),
-		Notebook:     NewNotebookClient(cfg),
-		NotebookCard: NewNotebookCardClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		Card:           NewCardClient(cfg),
+		Collection:     NewCollectionClient(cfg),
+		CollectionCard: NewCollectionCardClient(cfg),
+		Deck:           NewDeckClient(cfg),
+		StudyEvent:     NewStudyEventClient(cfg),
+		User:           NewUserClient(cfg),
 	}, nil
 }
 
@@ -202,21 +208,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Card.Use(hooks...)
-	c.Deck.Use(hooks...)
-	c.Notebook.Use(hooks...)
-	c.NotebookCard.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Card, c.Collection, c.CollectionCard, c.Deck, c.StudyEvent, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Card.Intercept(interceptors...)
-	c.Deck.Intercept(interceptors...)
-	c.Notebook.Intercept(interceptors...)
-	c.NotebookCard.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Card, c.Collection, c.CollectionCard, c.Deck, c.StudyEvent, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -224,12 +230,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *CardMutation:
 		return c.Card.mutate(ctx, m)
+	case *CollectionMutation:
+		return c.Collection.mutate(ctx, m)
+	case *CollectionCardMutation:
+		return c.CollectionCard.mutate(ctx, m)
 	case *DeckMutation:
 		return c.Deck.mutate(ctx, m)
-	case *NotebookMutation:
-		return c.Notebook.mutate(ctx, m)
-	case *NotebookCardMutation:
-		return c.NotebookCard.mutate(ctx, m)
+	case *StudyEventMutation:
+		return c.StudyEvent.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -377,15 +385,31 @@ func (c *CardClient) QueryDecks(_m *Card) *DeckQuery {
 	return query
 }
 
-// QueryNotebookCards queries the notebook_cards edge of a Card.
-func (c *CardClient) QueryNotebookCards(_m *Card) *NotebookCardQuery {
-	query := (&NotebookCardClient{config: c.config}).Query()
+// QueryCollectionCards queries the collection_cards edge of a Card.
+func (c *CardClient) QueryCollectionCards(_m *Card) *CollectionCardQuery {
+	query := (&CollectionCardClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(card.Table, card.FieldID, id),
-			sqlgraph.To(notebookcard.Table, notebookcard.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, card.NotebookCardsTable, card.NotebookCardsColumn),
+			sqlgraph.To(collectioncard.Table, collectioncard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, card.CollectionCardsTable, card.CollectionCardsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStudyEvents queries the study_events edge of a Card.
+func (c *CardClient) QueryStudyEvents(_m *Card) *StudyEventQuery {
+	query := (&StudyEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(card.Table, card.FieldID, id),
+			sqlgraph.To(studyevent.Table, studyevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, card.StudyEventsTable, card.StudyEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -415,6 +439,368 @@ func (c *CardClient) mutate(ctx context.Context, m *CardMutation) (Value, error)
 		return (&CardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Card mutation op: %q", m.Op())
+	}
+}
+
+// CollectionClient is a client for the Collection schema.
+type CollectionClient struct {
+	config
+}
+
+// NewCollectionClient returns a client for the Collection from the given config.
+func NewCollectionClient(c config) *CollectionClient {
+	return &CollectionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `collection.Hooks(f(g(h())))`.
+func (c *CollectionClient) Use(hooks ...Hook) {
+	c.hooks.Collection = append(c.hooks.Collection, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `collection.Intercept(f(g(h())))`.
+func (c *CollectionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Collection = append(c.inters.Collection, interceptors...)
+}
+
+// Create returns a builder for creating a Collection entity.
+func (c *CollectionClient) Create() *CollectionCreate {
+	mutation := newCollectionMutation(c.config, OpCreate)
+	return &CollectionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Collection entities.
+func (c *CollectionClient) CreateBulk(builders ...*CollectionCreate) *CollectionCreateBulk {
+	return &CollectionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CollectionClient) MapCreateBulk(slice any, setFunc func(*CollectionCreate, int)) *CollectionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CollectionCreateBulk{err: fmt.Errorf("calling to CollectionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CollectionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CollectionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Collection.
+func (c *CollectionClient) Update() *CollectionUpdate {
+	mutation := newCollectionMutation(c.config, OpUpdate)
+	return &CollectionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CollectionClient) UpdateOne(_m *Collection) *CollectionUpdateOne {
+	mutation := newCollectionMutation(c.config, OpUpdateOne, withCollection(_m))
+	return &CollectionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CollectionClient) UpdateOneID(id string) *CollectionUpdateOne {
+	mutation := newCollectionMutation(c.config, OpUpdateOne, withCollectionID(id))
+	return &CollectionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Collection.
+func (c *CollectionClient) Delete() *CollectionDelete {
+	mutation := newCollectionMutation(c.config, OpDelete)
+	return &CollectionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CollectionClient) DeleteOne(_m *Collection) *CollectionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CollectionClient) DeleteOneID(id string) *CollectionDeleteOne {
+	builder := c.Delete().Where(collection.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CollectionDeleteOne{builder}
+}
+
+// Query returns a query builder for Collection.
+func (c *CollectionClient) Query() *CollectionQuery {
+	return &CollectionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCollection},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Collection entity by its id.
+func (c *CollectionClient) Get(ctx context.Context, id string) (*Collection, error) {
+	return c.Query().Where(collection.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CollectionClient) GetX(ctx context.Context, id string) *Collection {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCreator queries the creator edge of a Collection.
+func (c *CollectionClient) QueryCreator(_m *Collection) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collection.Table, collection.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, collection.CreatorTable, collection.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCollectionCards queries the collection_cards edge of a Collection.
+func (c *CollectionClient) QueryCollectionCards(_m *Collection) *CollectionCardQuery {
+	query := (&CollectionCardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collection.Table, collection.FieldID, id),
+			sqlgraph.To(collectioncard.Table, collectioncard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, collection.CollectionCardsTable, collection.CollectionCardsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStudyEvents queries the study_events edge of a Collection.
+func (c *CollectionClient) QueryStudyEvents(_m *Collection) *StudyEventQuery {
+	query := (&StudyEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collection.Table, collection.FieldID, id),
+			sqlgraph.To(studyevent.Table, studyevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, collection.StudyEventsTable, collection.StudyEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CollectionClient) Hooks() []Hook {
+	return c.hooks.Collection
+}
+
+// Interceptors returns the client interceptors.
+func (c *CollectionClient) Interceptors() []Interceptor {
+	return c.inters.Collection
+}
+
+func (c *CollectionClient) mutate(ctx context.Context, m *CollectionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CollectionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CollectionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CollectionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CollectionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Collection mutation op: %q", m.Op())
+	}
+}
+
+// CollectionCardClient is a client for the CollectionCard schema.
+type CollectionCardClient struct {
+	config
+}
+
+// NewCollectionCardClient returns a client for the CollectionCard from the given config.
+func NewCollectionCardClient(c config) *CollectionCardClient {
+	return &CollectionCardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `collectioncard.Hooks(f(g(h())))`.
+func (c *CollectionCardClient) Use(hooks ...Hook) {
+	c.hooks.CollectionCard = append(c.hooks.CollectionCard, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `collectioncard.Intercept(f(g(h())))`.
+func (c *CollectionCardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CollectionCard = append(c.inters.CollectionCard, interceptors...)
+}
+
+// Create returns a builder for creating a CollectionCard entity.
+func (c *CollectionCardClient) Create() *CollectionCardCreate {
+	mutation := newCollectionCardMutation(c.config, OpCreate)
+	return &CollectionCardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CollectionCard entities.
+func (c *CollectionCardClient) CreateBulk(builders ...*CollectionCardCreate) *CollectionCardCreateBulk {
+	return &CollectionCardCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CollectionCardClient) MapCreateBulk(slice any, setFunc func(*CollectionCardCreate, int)) *CollectionCardCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CollectionCardCreateBulk{err: fmt.Errorf("calling to CollectionCardClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CollectionCardCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CollectionCardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CollectionCard.
+func (c *CollectionCardClient) Update() *CollectionCardUpdate {
+	mutation := newCollectionCardMutation(c.config, OpUpdate)
+	return &CollectionCardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CollectionCardClient) UpdateOne(_m *CollectionCard) *CollectionCardUpdateOne {
+	mutation := newCollectionCardMutation(c.config, OpUpdateOne, withCollectionCard(_m))
+	return &CollectionCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CollectionCardClient) UpdateOneID(id string) *CollectionCardUpdateOne {
+	mutation := newCollectionCardMutation(c.config, OpUpdateOne, withCollectionCardID(id))
+	return &CollectionCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CollectionCard.
+func (c *CollectionCardClient) Delete() *CollectionCardDelete {
+	mutation := newCollectionCardMutation(c.config, OpDelete)
+	return &CollectionCardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CollectionCardClient) DeleteOne(_m *CollectionCard) *CollectionCardDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CollectionCardClient) DeleteOneID(id string) *CollectionCardDeleteOne {
+	builder := c.Delete().Where(collectioncard.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CollectionCardDeleteOne{builder}
+}
+
+// Query returns a query builder for CollectionCard.
+func (c *CollectionCardClient) Query() *CollectionCardQuery {
+	return &CollectionCardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCollectionCard},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CollectionCard entity by its id.
+func (c *CollectionCardClient) Get(ctx context.Context, id string) (*CollectionCard, error) {
+	return c.Query().Where(collectioncard.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CollectionCardClient) GetX(ctx context.Context, id string) *CollectionCard {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCollection queries the collection edge of a CollectionCard.
+func (c *CollectionCardClient) QueryCollection(_m *CollectionCard) *CollectionQuery {
+	query := (&CollectionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collectioncard.Table, collectioncard.FieldID, id),
+			sqlgraph.To(collection.Table, collection.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, collectioncard.CollectionTable, collectioncard.CollectionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCard queries the card edge of a CollectionCard.
+func (c *CollectionCardClient) QueryCard(_m *CollectionCard) *CardQuery {
+	query := (&CardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collectioncard.Table, collectioncard.FieldID, id),
+			sqlgraph.To(card.Table, card.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, collectioncard.CardTable, collectioncard.CardColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeck queries the deck edge of a CollectionCard.
+func (c *CollectionCardClient) QueryDeck(_m *CollectionCard) *DeckQuery {
+	query := (&DeckClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collectioncard.Table, collectioncard.FieldID, id),
+			sqlgraph.To(deck.Table, deck.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, collectioncard.DeckTable, collectioncard.DeckColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CollectionCardClient) Hooks() []Hook {
+	return c.hooks.CollectionCard
+}
+
+// Interceptors returns the client interceptors.
+func (c *CollectionCardClient) Interceptors() []Interceptor {
+	return c.inters.CollectionCard
+}
+
+func (c *CollectionCardClient) mutate(ctx context.Context, m *CollectionCardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CollectionCardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CollectionCardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CollectionCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CollectionCardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CollectionCard mutation op: %q", m.Op())
 	}
 }
 
@@ -558,15 +944,31 @@ func (c *DeckClient) QueryCards(_m *Deck) *CardQuery {
 	return query
 }
 
-// QueryNotebookCards queries the notebook_cards edge of a Deck.
-func (c *DeckClient) QueryNotebookCards(_m *Deck) *NotebookCardQuery {
-	query := (&NotebookCardClient{config: c.config}).Query()
+// QueryCollectionCards queries the collection_cards edge of a Deck.
+func (c *DeckClient) QueryCollectionCards(_m *Deck) *CollectionCardQuery {
+	query := (&CollectionCardClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(deck.Table, deck.FieldID, id),
-			sqlgraph.To(notebookcard.Table, notebookcard.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, deck.NotebookCardsTable, deck.NotebookCardsColumn),
+			sqlgraph.To(collectioncard.Table, collectioncard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deck.CollectionCardsTable, deck.CollectionCardsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStudyEvents queries the study_events edge of a Deck.
+func (c *DeckClient) QueryStudyEvents(_m *Deck) *StudyEventQuery {
+	query := (&StudyEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(deck.Table, deck.FieldID, id),
+			sqlgraph.To(studyevent.Table, studyevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, deck.StudyEventsTable, deck.StudyEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -599,107 +1001,107 @@ func (c *DeckClient) mutate(ctx context.Context, m *DeckMutation) (Value, error)
 	}
 }
 
-// NotebookClient is a client for the Notebook schema.
-type NotebookClient struct {
+// StudyEventClient is a client for the StudyEvent schema.
+type StudyEventClient struct {
 	config
 }
 
-// NewNotebookClient returns a client for the Notebook from the given config.
-func NewNotebookClient(c config) *NotebookClient {
-	return &NotebookClient{config: c}
+// NewStudyEventClient returns a client for the StudyEvent from the given config.
+func NewStudyEventClient(c config) *StudyEventClient {
+	return &StudyEventClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `notebook.Hooks(f(g(h())))`.
-func (c *NotebookClient) Use(hooks ...Hook) {
-	c.hooks.Notebook = append(c.hooks.Notebook, hooks...)
+// A call to `Use(f, g, h)` equals to `studyevent.Hooks(f(g(h())))`.
+func (c *StudyEventClient) Use(hooks ...Hook) {
+	c.hooks.StudyEvent = append(c.hooks.StudyEvent, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `notebook.Intercept(f(g(h())))`.
-func (c *NotebookClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Notebook = append(c.inters.Notebook, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `studyevent.Intercept(f(g(h())))`.
+func (c *StudyEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.StudyEvent = append(c.inters.StudyEvent, interceptors...)
 }
 
-// Create returns a builder for creating a Notebook entity.
-func (c *NotebookClient) Create() *NotebookCreate {
-	mutation := newNotebookMutation(c.config, OpCreate)
-	return &NotebookCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a StudyEvent entity.
+func (c *StudyEventClient) Create() *StudyEventCreate {
+	mutation := newStudyEventMutation(c.config, OpCreate)
+	return &StudyEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Notebook entities.
-func (c *NotebookClient) CreateBulk(builders ...*NotebookCreate) *NotebookCreateBulk {
-	return &NotebookCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of StudyEvent entities.
+func (c *StudyEventClient) CreateBulk(builders ...*StudyEventCreate) *StudyEventCreateBulk {
+	return &StudyEventCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *NotebookClient) MapCreateBulk(slice any, setFunc func(*NotebookCreate, int)) *NotebookCreateBulk {
+func (c *StudyEventClient) MapCreateBulk(slice any, setFunc func(*StudyEventCreate, int)) *StudyEventCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &NotebookCreateBulk{err: fmt.Errorf("calling to NotebookClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &StudyEventCreateBulk{err: fmt.Errorf("calling to StudyEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*NotebookCreate, rv.Len())
+	builders := make([]*StudyEventCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &NotebookCreateBulk{config: c.config, builders: builders}
+	return &StudyEventCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Notebook.
-func (c *NotebookClient) Update() *NotebookUpdate {
-	mutation := newNotebookMutation(c.config, OpUpdate)
-	return &NotebookUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for StudyEvent.
+func (c *StudyEventClient) Update() *StudyEventUpdate {
+	mutation := newStudyEventMutation(c.config, OpUpdate)
+	return &StudyEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *NotebookClient) UpdateOne(_m *Notebook) *NotebookUpdateOne {
-	mutation := newNotebookMutation(c.config, OpUpdateOne, withNotebook(_m))
-	return &NotebookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *StudyEventClient) UpdateOne(_m *StudyEvent) *StudyEventUpdateOne {
+	mutation := newStudyEventMutation(c.config, OpUpdateOne, withStudyEvent(_m))
+	return &StudyEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *NotebookClient) UpdateOneID(id string) *NotebookUpdateOne {
-	mutation := newNotebookMutation(c.config, OpUpdateOne, withNotebookID(id))
-	return &NotebookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *StudyEventClient) UpdateOneID(id string) *StudyEventUpdateOne {
+	mutation := newStudyEventMutation(c.config, OpUpdateOne, withStudyEventID(id))
+	return &StudyEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Notebook.
-func (c *NotebookClient) Delete() *NotebookDelete {
-	mutation := newNotebookMutation(c.config, OpDelete)
-	return &NotebookDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for StudyEvent.
+func (c *StudyEventClient) Delete() *StudyEventDelete {
+	mutation := newStudyEventMutation(c.config, OpDelete)
+	return &StudyEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *NotebookClient) DeleteOne(_m *Notebook) *NotebookDeleteOne {
+func (c *StudyEventClient) DeleteOne(_m *StudyEvent) *StudyEventDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *NotebookClient) DeleteOneID(id string) *NotebookDeleteOne {
-	builder := c.Delete().Where(notebook.ID(id))
+func (c *StudyEventClient) DeleteOneID(id string) *StudyEventDeleteOne {
+	builder := c.Delete().Where(studyevent.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &NotebookDeleteOne{builder}
+	return &StudyEventDeleteOne{builder}
 }
 
-// Query returns a query builder for Notebook.
-func (c *NotebookClient) Query() *NotebookQuery {
-	return &NotebookQuery{
+// Query returns a query builder for StudyEvent.
+func (c *StudyEventClient) Query() *StudyEventQuery {
+	return &StudyEventQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeNotebook},
+		ctx:    &QueryContext{Type: TypeStudyEvent},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Notebook entity by its id.
-func (c *NotebookClient) Get(ctx context.Context, id string) (*Notebook, error) {
-	return c.Query().Where(notebook.ID(id)).Only(ctx)
+// Get returns a StudyEvent entity by its id.
+func (c *StudyEventClient) Get(ctx context.Context, id string) (*StudyEvent, error) {
+	return c.Query().Where(studyevent.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *NotebookClient) GetX(ctx context.Context, id string) *Notebook {
+func (c *StudyEventClient) GetX(ctx context.Context, id string) *StudyEvent {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -707,15 +1109,15 @@ func (c *NotebookClient) GetX(ctx context.Context, id string) *Notebook {
 	return obj
 }
 
-// QueryCreator queries the creator edge of a Notebook.
-func (c *NotebookClient) QueryCreator(_m *Notebook) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
+// QueryCollection queries the collection edge of a StudyEvent.
+func (c *StudyEventClient) QueryCollection(_m *StudyEvent) *CollectionQuery {
+	query := (&CollectionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebook.Table, notebook.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebook.CreatorTable, notebook.CreatorColumn),
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, id),
+			sqlgraph.To(collection.Table, collection.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.CollectionTable, studyevent.CollectionColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -723,180 +1125,15 @@ func (c *NotebookClient) QueryCreator(_m *Notebook) *UserQuery {
 	return query
 }
 
-// QueryNotebookCards queries the notebook_cards edge of a Notebook.
-func (c *NotebookClient) QueryNotebookCards(_m *Notebook) *NotebookCardQuery {
-	query := (&NotebookCardClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(notebook.Table, notebook.FieldID, id),
-			sqlgraph.To(notebookcard.Table, notebookcard.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, notebook.NotebookCardsTable, notebook.NotebookCardsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *NotebookClient) Hooks() []Hook {
-	return c.hooks.Notebook
-}
-
-// Interceptors returns the client interceptors.
-func (c *NotebookClient) Interceptors() []Interceptor {
-	return c.inters.Notebook
-}
-
-func (c *NotebookClient) mutate(ctx context.Context, m *NotebookMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&NotebookCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&NotebookUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&NotebookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&NotebookDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Notebook mutation op: %q", m.Op())
-	}
-}
-
-// NotebookCardClient is a client for the NotebookCard schema.
-type NotebookCardClient struct {
-	config
-}
-
-// NewNotebookCardClient returns a client for the NotebookCard from the given config.
-func NewNotebookCardClient(c config) *NotebookCardClient {
-	return &NotebookCardClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `notebookcard.Hooks(f(g(h())))`.
-func (c *NotebookCardClient) Use(hooks ...Hook) {
-	c.hooks.NotebookCard = append(c.hooks.NotebookCard, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `notebookcard.Intercept(f(g(h())))`.
-func (c *NotebookCardClient) Intercept(interceptors ...Interceptor) {
-	c.inters.NotebookCard = append(c.inters.NotebookCard, interceptors...)
-}
-
-// Create returns a builder for creating a NotebookCard entity.
-func (c *NotebookCardClient) Create() *NotebookCardCreate {
-	mutation := newNotebookCardMutation(c.config, OpCreate)
-	return &NotebookCardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of NotebookCard entities.
-func (c *NotebookCardClient) CreateBulk(builders ...*NotebookCardCreate) *NotebookCardCreateBulk {
-	return &NotebookCardCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *NotebookCardClient) MapCreateBulk(slice any, setFunc func(*NotebookCardCreate, int)) *NotebookCardCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &NotebookCardCreateBulk{err: fmt.Errorf("calling to NotebookCardClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*NotebookCardCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &NotebookCardCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for NotebookCard.
-func (c *NotebookCardClient) Update() *NotebookCardUpdate {
-	mutation := newNotebookCardMutation(c.config, OpUpdate)
-	return &NotebookCardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *NotebookCardClient) UpdateOne(_m *NotebookCard) *NotebookCardUpdateOne {
-	mutation := newNotebookCardMutation(c.config, OpUpdateOne, withNotebookCard(_m))
-	return &NotebookCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *NotebookCardClient) UpdateOneID(id string) *NotebookCardUpdateOne {
-	mutation := newNotebookCardMutation(c.config, OpUpdateOne, withNotebookCardID(id))
-	return &NotebookCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for NotebookCard.
-func (c *NotebookCardClient) Delete() *NotebookCardDelete {
-	mutation := newNotebookCardMutation(c.config, OpDelete)
-	return &NotebookCardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *NotebookCardClient) DeleteOne(_m *NotebookCard) *NotebookCardDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *NotebookCardClient) DeleteOneID(id string) *NotebookCardDeleteOne {
-	builder := c.Delete().Where(notebookcard.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &NotebookCardDeleteOne{builder}
-}
-
-// Query returns a query builder for NotebookCard.
-func (c *NotebookCardClient) Query() *NotebookCardQuery {
-	return &NotebookCardQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeNotebookCard},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a NotebookCard entity by its id.
-func (c *NotebookCardClient) Get(ctx context.Context, id string) (*NotebookCard, error) {
-	return c.Query().Where(notebookcard.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *NotebookCardClient) GetX(ctx context.Context, id string) *NotebookCard {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryNotebook queries the notebook edge of a NotebookCard.
-func (c *NotebookCardClient) QueryNotebook(_m *NotebookCard) *NotebookQuery {
-	query := (&NotebookClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(notebookcard.Table, notebookcard.FieldID, id),
-			sqlgraph.To(notebook.Table, notebook.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebookcard.NotebookTable, notebookcard.NotebookColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCard queries the card edge of a NotebookCard.
-func (c *NotebookCardClient) QueryCard(_m *NotebookCard) *CardQuery {
+// QueryCard queries the card edge of a StudyEvent.
+func (c *StudyEventClient) QueryCard(_m *StudyEvent) *CardQuery {
 	query := (&CardClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebookcard.Table, notebookcard.FieldID, id),
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, id),
 			sqlgraph.To(card.Table, card.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebookcard.CardTable, notebookcard.CardColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.CardTable, studyevent.CardColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -904,15 +1141,31 @@ func (c *NotebookCardClient) QueryCard(_m *NotebookCard) *CardQuery {
 	return query
 }
 
-// QueryDeck queries the deck edge of a NotebookCard.
-func (c *NotebookCardClient) QueryDeck(_m *NotebookCard) *DeckQuery {
+// QueryUser queries the user edge of a StudyEvent.
+func (c *StudyEventClient) QueryUser(_m *StudyEvent) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.UserTable, studyevent.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPreviousDeck queries the previous_deck edge of a StudyEvent.
+func (c *StudyEventClient) QueryPreviousDeck(_m *StudyEvent) *DeckQuery {
 	query := (&DeckClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebookcard.Table, notebookcard.FieldID, id),
+			sqlgraph.From(studyevent.Table, studyevent.FieldID, id),
 			sqlgraph.To(deck.Table, deck.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebookcard.DeckTable, notebookcard.DeckColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, studyevent.PreviousDeckTable, studyevent.PreviousDeckColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -921,27 +1174,27 @@ func (c *NotebookCardClient) QueryDeck(_m *NotebookCard) *DeckQuery {
 }
 
 // Hooks returns the client hooks.
-func (c *NotebookCardClient) Hooks() []Hook {
-	return c.hooks.NotebookCard
+func (c *StudyEventClient) Hooks() []Hook {
+	return c.hooks.StudyEvent
 }
 
 // Interceptors returns the client interceptors.
-func (c *NotebookCardClient) Interceptors() []Interceptor {
-	return c.inters.NotebookCard
+func (c *StudyEventClient) Interceptors() []Interceptor {
+	return c.inters.StudyEvent
 }
 
-func (c *NotebookCardClient) mutate(ctx context.Context, m *NotebookCardMutation) (Value, error) {
+func (c *StudyEventClient) mutate(ctx context.Context, m *StudyEventMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&NotebookCardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&StudyEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&NotebookCardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&StudyEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&NotebookCardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&StudyEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&NotebookCardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&StudyEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown NotebookCard mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown StudyEvent mutation op: %q", m.Op())
 	}
 }
 
@@ -1085,15 +1338,31 @@ func (c *UserClient) QueryDecks(_m *User) *DeckQuery {
 	return query
 }
 
-// QueryNotebooks queries the notebooks edge of a User.
-func (c *UserClient) QueryNotebooks(_m *User) *NotebookQuery {
-	query := (&NotebookClient{config: c.config}).Query()
+// QueryCollections queries the collections edge of a User.
+func (c *UserClient) QueryCollections(_m *User) *CollectionQuery {
+	query := (&CollectionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(notebook.Table, notebook.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.NotebooksTable, user.NotebooksColumn),
+			sqlgraph.To(collection.Table, collection.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CollectionsTable, user.CollectionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStudyEvents queries the study_events edge of a User.
+func (c *UserClient) QueryStudyEvents(_m *User) *StudyEventQuery {
+	query := (&StudyEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(studyevent.Table, studyevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.StudyEventsTable, user.StudyEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1129,9 +1398,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Card, Deck, Notebook, NotebookCard, User []ent.Hook
+		Card, Collection, CollectionCard, Deck, StudyEvent, User []ent.Hook
 	}
 	inters struct {
-		Card, Deck, Notebook, NotebookCard, User []ent.Interceptor
+		Card, Collection, CollectionCard, Deck, StudyEvent, User []ent.Interceptor
 	}
 )

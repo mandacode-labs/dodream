@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/mandacode-labs/dodream/ent/card"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
 	"github.com/mandacode-labs/dodream/ent/schema"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
@@ -33,6 +34,34 @@ func init() {
 	card.DefaultUpdatedAt = cardDescUpdatedAt.Default.(func() time.Time)
 	// card.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	card.UpdateDefaultUpdatedAt = cardDescUpdatedAt.UpdateDefault.(func() time.Time)
+	collectionFields := schema.Collection{}.Fields()
+	_ = collectionFields
+	// collectionDescName is the schema descriptor for name field.
+	collectionDescName := collectionFields[1].Descriptor()
+	// collection.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	collection.NameValidator = collectionDescName.Validators[0].(func(string) error)
+	// collectionDescCreatedAt is the schema descriptor for created_at field.
+	collectionDescCreatedAt := collectionFields[2].Descriptor()
+	// collection.DefaultCreatedAt holds the default value on creation for the created_at field.
+	collection.DefaultCreatedAt = collectionDescCreatedAt.Default.(func() time.Time)
+	// collectionDescUpdatedAt is the schema descriptor for updated_at field.
+	collectionDescUpdatedAt := collectionFields[3].Descriptor()
+	// collection.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	collection.DefaultUpdatedAt = collectionDescUpdatedAt.Default.(func() time.Time)
+	// collection.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	collection.UpdateDefaultUpdatedAt = collectionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	collectioncardFields := schema.CollectionCard{}.Fields()
+	_ = collectioncardFields
+	// collectioncardDescCreatedAt is the schema descriptor for created_at field.
+	collectioncardDescCreatedAt := collectioncardFields[1].Descriptor()
+	// collectioncard.DefaultCreatedAt holds the default value on creation for the created_at field.
+	collectioncard.DefaultCreatedAt = collectioncardDescCreatedAt.Default.(func() time.Time)
+	// collectioncardDescUpdatedAt is the schema descriptor for updated_at field.
+	collectioncardDescUpdatedAt := collectioncardFields[2].Descriptor()
+	// collectioncard.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	collectioncard.DefaultUpdatedAt = collectioncardDescUpdatedAt.Default.(func() time.Time)
+	// collectioncard.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	collectioncard.UpdateDefaultUpdatedAt = collectioncardDescUpdatedAt.UpdateDefault.(func() time.Time)
 	deckFields := schema.Deck{}.Fields()
 	_ = deckFields
 	// deckDescName is the schema descriptor for name field.
@@ -49,34 +78,16 @@ func init() {
 	deck.DefaultUpdatedAt = deckDescUpdatedAt.Default.(func() time.Time)
 	// deck.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	deck.UpdateDefaultUpdatedAt = deckDescUpdatedAt.UpdateDefault.(func() time.Time)
-	notebookFields := schema.Notebook{}.Fields()
-	_ = notebookFields
-	// notebookDescName is the schema descriptor for name field.
-	notebookDescName := notebookFields[1].Descriptor()
-	// notebook.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	notebook.NameValidator = notebookDescName.Validators[0].(func(string) error)
-	// notebookDescCreatedAt is the schema descriptor for created_at field.
-	notebookDescCreatedAt := notebookFields[2].Descriptor()
-	// notebook.DefaultCreatedAt holds the default value on creation for the created_at field.
-	notebook.DefaultCreatedAt = notebookDescCreatedAt.Default.(func() time.Time)
-	// notebookDescUpdatedAt is the schema descriptor for updated_at field.
-	notebookDescUpdatedAt := notebookFields[3].Descriptor()
-	// notebook.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	notebook.DefaultUpdatedAt = notebookDescUpdatedAt.Default.(func() time.Time)
-	// notebook.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	notebook.UpdateDefaultUpdatedAt = notebookDescUpdatedAt.UpdateDefault.(func() time.Time)
-	notebookcardFields := schema.NotebookCard{}.Fields()
-	_ = notebookcardFields
-	// notebookcardDescCreatedAt is the schema descriptor for created_at field.
-	notebookcardDescCreatedAt := notebookcardFields[1].Descriptor()
-	// notebookcard.DefaultCreatedAt holds the default value on creation for the created_at field.
-	notebookcard.DefaultCreatedAt = notebookcardDescCreatedAt.Default.(func() time.Time)
-	// notebookcardDescUpdatedAt is the schema descriptor for updated_at field.
-	notebookcardDescUpdatedAt := notebookcardFields[2].Descriptor()
-	// notebookcard.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	notebookcard.DefaultUpdatedAt = notebookcardDescUpdatedAt.Default.(func() time.Time)
-	// notebookcard.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	notebookcard.UpdateDefaultUpdatedAt = notebookcardDescUpdatedAt.UpdateDefault.(func() time.Time)
+	studyeventFields := schema.StudyEvent{}.Fields()
+	_ = studyeventFields
+	// studyeventDescEventType is the schema descriptor for event_type field.
+	studyeventDescEventType := studyeventFields[1].Descriptor()
+	// studyevent.EventTypeValidator is a validator for the "event_type" field. It is called by the builders before save.
+	studyevent.EventTypeValidator = studyeventDescEventType.Validators[0].(func(string) error)
+	// studyeventDescCreatedAt is the schema descriptor for created_at field.
+	studyeventDescCreatedAt := studyeventFields[4].Descriptor()
+	// studyevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	studyevent.DefaultCreatedAt = studyeventDescCreatedAt.Default.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescNickname is the schema descriptor for nickname field.

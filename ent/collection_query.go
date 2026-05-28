@@ -12,60 +12,62 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mandacode-labs/dodream/ent/notebook"
-	"github.com/mandacode-labs/dodream/ent/notebookcard"
+	"github.com/mandacode-labs/dodream/ent/collection"
+	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/predicate"
+	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
-// NotebookQuery is the builder for querying Notebook entities.
-type NotebookQuery struct {
+// CollectionQuery is the builder for querying Collection entities.
+type CollectionQuery struct {
 	config
-	ctx               *QueryContext
-	order             []notebook.OrderOption
-	inters            []Interceptor
-	predicates        []predicate.Notebook
-	withCreator       *UserQuery
-	withNotebookCards *NotebookCardQuery
-	withFKs           bool
+	ctx                 *QueryContext
+	order               []collection.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.Collection
+	withCreator         *UserQuery
+	withCollectionCards *CollectionCardQuery
+	withStudyEvents     *StudyEventQuery
+	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the NotebookQuery builder.
-func (_q *NotebookQuery) Where(ps ...predicate.Notebook) *NotebookQuery {
+// Where adds a new predicate for the CollectionQuery builder.
+func (_q *CollectionQuery) Where(ps ...predicate.Collection) *CollectionQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *NotebookQuery) Limit(limit int) *NotebookQuery {
+func (_q *CollectionQuery) Limit(limit int) *CollectionQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *NotebookQuery) Offset(offset int) *NotebookQuery {
+func (_q *CollectionQuery) Offset(offset int) *CollectionQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *NotebookQuery) Unique(unique bool) *NotebookQuery {
+func (_q *CollectionQuery) Unique(unique bool) *CollectionQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *NotebookQuery) Order(o ...notebook.OrderOption) *NotebookQuery {
+func (_q *CollectionQuery) Order(o ...collection.OrderOption) *CollectionQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryCreator chains the current query on the "creator" edge.
-func (_q *NotebookQuery) QueryCreator() *UserQuery {
+func (_q *CollectionQuery) QueryCreator() *UserQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -76,9 +78,9 @@ func (_q *NotebookQuery) QueryCreator() *UserQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebook.Table, notebook.FieldID, selector),
+			sqlgraph.From(collection.Table, collection.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, notebook.CreatorTable, notebook.CreatorColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, collection.CreatorTable, collection.CreatorColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -86,9 +88,9 @@ func (_q *NotebookQuery) QueryCreator() *UserQuery {
 	return query
 }
 
-// QueryNotebookCards chains the current query on the "notebook_cards" edge.
-func (_q *NotebookQuery) QueryNotebookCards() *NotebookCardQuery {
-	query := (&NotebookCardClient{config: _q.config}).Query()
+// QueryCollectionCards chains the current query on the "collection_cards" edge.
+func (_q *CollectionQuery) QueryCollectionCards() *CollectionCardQuery {
+	query := (&CollectionCardClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -98,9 +100,9 @@ func (_q *NotebookQuery) QueryNotebookCards() *NotebookCardQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(notebook.Table, notebook.FieldID, selector),
-			sqlgraph.To(notebookcard.Table, notebookcard.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, notebook.NotebookCardsTable, notebook.NotebookCardsColumn),
+			sqlgraph.From(collection.Table, collection.FieldID, selector),
+			sqlgraph.To(collectioncard.Table, collectioncard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, collection.CollectionCardsTable, collection.CollectionCardsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -108,21 +110,43 @@ func (_q *NotebookQuery) QueryNotebookCards() *NotebookCardQuery {
 	return query
 }
 
-// First returns the first Notebook entity from the query.
-// Returns a *NotFoundError when no Notebook was found.
-func (_q *NotebookQuery) First(ctx context.Context) (*Notebook, error) {
+// QueryStudyEvents chains the current query on the "study_events" edge.
+func (_q *CollectionQuery) QueryStudyEvents() *StudyEventQuery {
+	query := (&StudyEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collection.Table, collection.FieldID, selector),
+			sqlgraph.To(studyevent.Table, studyevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, collection.StudyEventsTable, collection.StudyEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// First returns the first Collection entity from the query.
+// Returns a *NotFoundError when no Collection was found.
+func (_q *CollectionQuery) First(ctx context.Context) (*Collection, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{notebook.Label}
+		return nil, &NotFoundError{collection.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *NotebookQuery) FirstX(ctx context.Context) *Notebook {
+func (_q *CollectionQuery) FirstX(ctx context.Context) *Collection {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -130,22 +154,22 @@ func (_q *NotebookQuery) FirstX(ctx context.Context) *Notebook {
 	return node
 }
 
-// FirstID returns the first Notebook ID from the query.
-// Returns a *NotFoundError when no Notebook ID was found.
-func (_q *NotebookQuery) FirstID(ctx context.Context) (id string, err error) {
+// FirstID returns the first Collection ID from the query.
+// Returns a *NotFoundError when no Collection ID was found.
+func (_q *CollectionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{notebook.Label}
+		err = &NotFoundError{collection.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *NotebookQuery) FirstIDX(ctx context.Context) string {
+func (_q *CollectionQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -153,10 +177,10 @@ func (_q *NotebookQuery) FirstIDX(ctx context.Context) string {
 	return id
 }
 
-// Only returns a single Notebook entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Notebook entity is found.
-// Returns a *NotFoundError when no Notebook entities are found.
-func (_q *NotebookQuery) Only(ctx context.Context) (*Notebook, error) {
+// Only returns a single Collection entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one Collection entity is found.
+// Returns a *NotFoundError when no Collection entities are found.
+func (_q *CollectionQuery) Only(ctx context.Context) (*Collection, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -165,14 +189,14 @@ func (_q *NotebookQuery) Only(ctx context.Context) (*Notebook, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{notebook.Label}
+		return nil, &NotFoundError{collection.Label}
 	default:
-		return nil, &NotSingularError{notebook.Label}
+		return nil, &NotSingularError{collection.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *NotebookQuery) OnlyX(ctx context.Context) *Notebook {
+func (_q *CollectionQuery) OnlyX(ctx context.Context) *Collection {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -180,10 +204,10 @@ func (_q *NotebookQuery) OnlyX(ctx context.Context) *Notebook {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Notebook ID in the query.
-// Returns a *NotSingularError when more than one Notebook ID is found.
+// OnlyID is like Only, but returns the only Collection ID in the query.
+// Returns a *NotSingularError when more than one Collection ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *NotebookQuery) OnlyID(ctx context.Context) (id string, err error) {
+func (_q *CollectionQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -192,15 +216,15 @@ func (_q *NotebookQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{notebook.Label}
+		err = &NotFoundError{collection.Label}
 	default:
-		err = &NotSingularError{notebook.Label}
+		err = &NotSingularError{collection.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *NotebookQuery) OnlyIDX(ctx context.Context) string {
+func (_q *CollectionQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -208,18 +232,18 @@ func (_q *NotebookQuery) OnlyIDX(ctx context.Context) string {
 	return id
 }
 
-// All executes the query and returns a list of Notebooks.
-func (_q *NotebookQuery) All(ctx context.Context) ([]*Notebook, error) {
+// All executes the query and returns a list of Collections.
+func (_q *CollectionQuery) All(ctx context.Context) ([]*Collection, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Notebook, *NotebookQuery]()
-	return withInterceptors[[]*Notebook](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*Collection, *CollectionQuery]()
+	return withInterceptors[[]*Collection](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *NotebookQuery) AllX(ctx context.Context) []*Notebook {
+func (_q *CollectionQuery) AllX(ctx context.Context) []*Collection {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -227,20 +251,20 @@ func (_q *NotebookQuery) AllX(ctx context.Context) []*Notebook {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Notebook IDs.
-func (_q *NotebookQuery) IDs(ctx context.Context) (ids []string, err error) {
+// IDs executes the query and returns a list of Collection IDs.
+func (_q *CollectionQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(notebook.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(collection.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *NotebookQuery) IDsX(ctx context.Context) []string {
+func (_q *CollectionQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -249,16 +273,16 @@ func (_q *NotebookQuery) IDsX(ctx context.Context) []string {
 }
 
 // Count returns the count of the given query.
-func (_q *NotebookQuery) Count(ctx context.Context) (int, error) {
+func (_q *CollectionQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*NotebookQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*CollectionQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *NotebookQuery) CountX(ctx context.Context) int {
+func (_q *CollectionQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -267,7 +291,7 @@ func (_q *NotebookQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *NotebookQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *CollectionQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -280,7 +304,7 @@ func (_q *NotebookQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *NotebookQuery) ExistX(ctx context.Context) bool {
+func (_q *CollectionQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -288,20 +312,21 @@ func (_q *NotebookQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the NotebookQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the CollectionQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *NotebookQuery) Clone() *NotebookQuery {
+func (_q *CollectionQuery) Clone() *CollectionQuery {
 	if _q == nil {
 		return nil
 	}
-	return &NotebookQuery{
-		config:            _q.config,
-		ctx:               _q.ctx.Clone(),
-		order:             append([]notebook.OrderOption{}, _q.order...),
-		inters:            append([]Interceptor{}, _q.inters...),
-		predicates:        append([]predicate.Notebook{}, _q.predicates...),
-		withCreator:       _q.withCreator.Clone(),
-		withNotebookCards: _q.withNotebookCards.Clone(),
+	return &CollectionQuery{
+		config:              _q.config,
+		ctx:                 _q.ctx.Clone(),
+		order:               append([]collection.OrderOption{}, _q.order...),
+		inters:              append([]Interceptor{}, _q.inters...),
+		predicates:          append([]predicate.Collection{}, _q.predicates...),
+		withCreator:         _q.withCreator.Clone(),
+		withCollectionCards: _q.withCollectionCards.Clone(),
+		withStudyEvents:     _q.withStudyEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -310,7 +335,7 @@ func (_q *NotebookQuery) Clone() *NotebookQuery {
 
 // WithCreator tells the query-builder to eager-load the nodes that are connected to
 // the "creator" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NotebookQuery) WithCreator(opts ...func(*UserQuery)) *NotebookQuery {
+func (_q *CollectionQuery) WithCreator(opts ...func(*UserQuery)) *CollectionQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -319,14 +344,25 @@ func (_q *NotebookQuery) WithCreator(opts ...func(*UserQuery)) *NotebookQuery {
 	return _q
 }
 
-// WithNotebookCards tells the query-builder to eager-load the nodes that are connected to
-// the "notebook_cards" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NotebookQuery) WithNotebookCards(opts ...func(*NotebookCardQuery)) *NotebookQuery {
-	query := (&NotebookCardClient{config: _q.config}).Query()
+// WithCollectionCards tells the query-builder to eager-load the nodes that are connected to
+// the "collection_cards" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CollectionQuery) WithCollectionCards(opts ...func(*CollectionCardQuery)) *CollectionQuery {
+	query := (&CollectionCardClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withNotebookCards = query
+	_q.withCollectionCards = query
+	return _q
+}
+
+// WithStudyEvents tells the query-builder to eager-load the nodes that are connected to
+// the "study_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CollectionQuery) WithStudyEvents(opts ...func(*StudyEventQuery)) *CollectionQuery {
+	query := (&StudyEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStudyEvents = query
 	return _q
 }
 
@@ -340,15 +376,15 @@ func (_q *NotebookQuery) WithNotebookCards(opts ...func(*NotebookCardQuery)) *No
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Notebook.Query().
-//		GroupBy(notebook.FieldName).
+//	client.Collection.Query().
+//		GroupBy(collection.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *NotebookQuery) GroupBy(field string, fields ...string) *NotebookGroupBy {
+func (_q *CollectionQuery) GroupBy(field string, fields ...string) *CollectionGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &NotebookGroupBy{build: _q}
+	grbuild := &CollectionGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = notebook.Label
+	grbuild.label = collection.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -362,23 +398,23 @@ func (_q *NotebookQuery) GroupBy(field string, fields ...string) *NotebookGroupB
 //		Name string `json:"name,omitempty"`
 //	}
 //
-//	client.Notebook.Query().
-//		Select(notebook.FieldName).
+//	client.Collection.Query().
+//		Select(collection.FieldName).
 //		Scan(ctx, &v)
-func (_q *NotebookQuery) Select(fields ...string) *NotebookSelect {
+func (_q *CollectionQuery) Select(fields ...string) *CollectionSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &NotebookSelect{NotebookQuery: _q}
-	sbuild.label = notebook.Label
+	sbuild := &CollectionSelect{CollectionQuery: _q}
+	sbuild.label = collection.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a NotebookSelect configured with the given aggregations.
-func (_q *NotebookQuery) Aggregate(fns ...AggregateFunc) *NotebookSelect {
+// Aggregate returns a CollectionSelect configured with the given aggregations.
+func (_q *CollectionQuery) Aggregate(fns ...AggregateFunc) *CollectionSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *NotebookQuery) prepareQuery(ctx context.Context) error {
+func (_q *CollectionQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -390,7 +426,7 @@ func (_q *NotebookQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !notebook.ValidColumn(f) {
+		if !collection.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -404,27 +440,28 @@ func (_q *NotebookQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *NotebookQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Notebook, error) {
+func (_q *CollectionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Collection, error) {
 	var (
-		nodes       = []*Notebook{}
+		nodes       = []*Collection{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withCreator != nil,
-			_q.withNotebookCards != nil,
+			_q.withCollectionCards != nil,
+			_q.withStudyEvents != nil,
 		}
 	)
 	if _q.withCreator != nil {
 		withFKs = true
 	}
 	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, notebook.ForeignKeys...)
+		_spec.Node.Columns = append(_spec.Node.Columns, collection.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Notebook).scanValues(nil, columns)
+		return (*Collection).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Notebook{config: _q.config}
+		node := &Collection{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -440,28 +477,35 @@ func (_q *NotebookQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Not
 	}
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
-			func(n *Notebook, e *User) { n.Edges.Creator = e }); err != nil {
+			func(n *Collection, e *User) { n.Edges.Creator = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withNotebookCards; query != nil {
-		if err := _q.loadNotebookCards(ctx, query, nodes,
-			func(n *Notebook) { n.Edges.NotebookCards = []*NotebookCard{} },
-			func(n *Notebook, e *NotebookCard) { n.Edges.NotebookCards = append(n.Edges.NotebookCards, e) }); err != nil {
+	if query := _q.withCollectionCards; query != nil {
+		if err := _q.loadCollectionCards(ctx, query, nodes,
+			func(n *Collection) { n.Edges.CollectionCards = []*CollectionCard{} },
+			func(n *Collection, e *CollectionCard) { n.Edges.CollectionCards = append(n.Edges.CollectionCards, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStudyEvents; query != nil {
+		if err := _q.loadStudyEvents(ctx, query, nodes,
+			func(n *Collection) { n.Edges.StudyEvents = []*StudyEvent{} },
+			func(n *Collection, e *StudyEvent) { n.Edges.StudyEvents = append(n.Edges.StudyEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *NotebookQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Notebook, init func(*Notebook), assign func(*Notebook, *User)) error {
+func (_q *CollectionQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Collection, init func(*Collection), assign func(*Collection, *User)) error {
 	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*Notebook)
+	nodeids := make(map[string][]*Collection)
 	for i := range nodes {
-		if nodes[i].user_notebooks == nil {
+		if nodes[i].user_collections == nil {
 			continue
 		}
-		fk := *nodes[i].user_notebooks
+		fk := *nodes[i].user_collections
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -478,7 +522,7 @@ func (_q *NotebookQuery) loadCreator(ctx context.Context, query *UserQuery, node
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_notebooks" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_collections" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -486,9 +530,9 @@ func (_q *NotebookQuery) loadCreator(ctx context.Context, query *UserQuery, node
 	}
 	return nil
 }
-func (_q *NotebookQuery) loadNotebookCards(ctx context.Context, query *NotebookCardQuery, nodes []*Notebook, init func(*Notebook), assign func(*Notebook, *NotebookCard)) error {
+func (_q *CollectionQuery) loadCollectionCards(ctx context.Context, query *CollectionCardQuery, nodes []*Collection, init func(*Collection), assign func(*Collection, *CollectionCard)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[string]*Notebook)
+	nodeids := make(map[string]*Collection)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -497,28 +541,59 @@ func (_q *NotebookQuery) loadNotebookCards(ctx context.Context, query *NotebookC
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.NotebookCard(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(notebook.NotebookCardsColumn), fks...))
+	query.Where(predicate.CollectionCard(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(collection.CollectionCardsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.notebook_notebook_cards
+		fk := n.collection_collection_cards
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "notebook_notebook_cards" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "collection_collection_cards" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "notebook_notebook_cards" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "collection_collection_cards" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CollectionQuery) loadStudyEvents(ctx context.Context, query *StudyEventQuery, nodes []*Collection, init func(*Collection), assign func(*Collection, *StudyEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Collection)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.StudyEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(collection.StudyEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.collection_study_events
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "collection_study_events" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "collection_study_events" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
 	return nil
 }
 
-func (_q *NotebookQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *CollectionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -527,8 +602,8 @@ func (_q *NotebookQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *NotebookQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(notebook.Table, notebook.Columns, sqlgraph.NewFieldSpec(notebook.FieldID, field.TypeString))
+func (_q *CollectionQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(collection.Table, collection.Columns, sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -537,9 +612,9 @@ func (_q *NotebookQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, notebook.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, collection.FieldID)
 		for i := range fields {
-			if fields[i] != notebook.FieldID {
+			if fields[i] != collection.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -567,12 +642,12 @@ func (_q *NotebookQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *NotebookQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *CollectionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(notebook.Table)
+	t1 := builder.Table(collection.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = notebook.Columns
+		columns = collection.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -599,28 +674,28 @@ func (_q *NotebookQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// NotebookGroupBy is the group-by builder for Notebook entities.
-type NotebookGroupBy struct {
+// CollectionGroupBy is the group-by builder for Collection entities.
+type CollectionGroupBy struct {
 	selector
-	build *NotebookQuery
+	build *CollectionQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *NotebookGroupBy) Aggregate(fns ...AggregateFunc) *NotebookGroupBy {
+func (_g *CollectionGroupBy) Aggregate(fns ...AggregateFunc) *CollectionGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *NotebookGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *CollectionGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*NotebookQuery, *NotebookGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*CollectionQuery, *CollectionGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *NotebookGroupBy) sqlScan(ctx context.Context, root *NotebookQuery, v any) error {
+func (_g *CollectionGroupBy) sqlScan(ctx context.Context, root *CollectionQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -647,28 +722,28 @@ func (_g *NotebookGroupBy) sqlScan(ctx context.Context, root *NotebookQuery, v a
 	return sql.ScanSlice(rows, v)
 }
 
-// NotebookSelect is the builder for selecting fields of Notebook entities.
-type NotebookSelect struct {
-	*NotebookQuery
+// CollectionSelect is the builder for selecting fields of Collection entities.
+type CollectionSelect struct {
+	*CollectionQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *NotebookSelect) Aggregate(fns ...AggregateFunc) *NotebookSelect {
+func (_s *CollectionSelect) Aggregate(fns ...AggregateFunc) *CollectionSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *NotebookSelect) Scan(ctx context.Context, v any) error {
+func (_s *CollectionSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*NotebookQuery, *NotebookSelect](ctx, _s.NotebookQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*CollectionQuery, *CollectionSelect](ctx, _s.CollectionQuery, _s, _s.inters, v)
 }
 
-func (_s *NotebookSelect) sqlScan(ctx context.Context, root *NotebookQuery, v any) error {
+func (_s *CollectionSelect) sqlScan(ctx context.Context, root *CollectionQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

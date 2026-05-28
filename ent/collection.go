@@ -9,12 +9,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mandacode-labs/dodream/ent/notebook"
+	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
 
-// Notebook is the model entity for the Notebook schema.
-type Notebook struct {
+// Collection is the model entity for the Collection schema.
+type Collection struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
@@ -25,26 +25,28 @@ type Notebook struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the NotebookQuery when eager-loading is set.
-	Edges          NotebookEdges `json:"edges"`
-	user_notebooks *string
-	selectValues   sql.SelectValues
+	// The values are being populated by the CollectionQuery when eager-loading is set.
+	Edges            CollectionEdges `json:"edges"`
+	user_collections *string
+	selectValues     sql.SelectValues
 }
 
-// NotebookEdges holds the relations/edges for other nodes in the graph.
-type NotebookEdges struct {
+// CollectionEdges holds the relations/edges for other nodes in the graph.
+type CollectionEdges struct {
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
-	// NotebookCards holds the value of the notebook_cards edge.
-	NotebookCards []*NotebookCard `json:"notebook_cards,omitempty"`
+	// CollectionCards holds the value of the collection_cards edge.
+	CollectionCards []*CollectionCard `json:"collection_cards,omitempty"`
+	// StudyEvents holds the value of the study_events edge.
+	StudyEvents []*StudyEvent `json:"study_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e NotebookEdges) CreatorOrErr() (*User, error) {
+func (e CollectionEdges) CreatorOrErr() (*User, error) {
 	if e.Creator != nil {
 		return e.Creator, nil
 	} else if e.loadedTypes[0] {
@@ -53,25 +55,34 @@ func (e NotebookEdges) CreatorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "creator"}
 }
 
-// NotebookCardsOrErr returns the NotebookCards value or an error if the edge
+// CollectionCardsOrErr returns the CollectionCards value or an error if the edge
 // was not loaded in eager-loading.
-func (e NotebookEdges) NotebookCardsOrErr() ([]*NotebookCard, error) {
+func (e CollectionEdges) CollectionCardsOrErr() ([]*CollectionCard, error) {
 	if e.loadedTypes[1] {
-		return e.NotebookCards, nil
+		return e.CollectionCards, nil
 	}
-	return nil, &NotLoadedError{edge: "notebook_cards"}
+	return nil, &NotLoadedError{edge: "collection_cards"}
+}
+
+// StudyEventsOrErr returns the StudyEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CollectionEdges) StudyEventsOrErr() ([]*StudyEvent, error) {
+	if e.loadedTypes[2] {
+		return e.StudyEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "study_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Notebook) scanValues(columns []string) ([]any, error) {
+func (*Collection) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notebook.FieldID, notebook.FieldName:
+		case collection.FieldID, collection.FieldName:
 			values[i] = new(sql.NullString)
-		case notebook.FieldCreatedAt, notebook.FieldUpdatedAt:
+		case collection.FieldCreatedAt, collection.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case notebook.ForeignKeys[0]: // user_notebooks
+		case collection.ForeignKeys[0]: // user_collections
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -81,43 +92,43 @@ func (*Notebook) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Notebook fields.
-func (_m *Notebook) assignValues(columns []string, values []any) error {
+// to the Collection fields.
+func (_m *Collection) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case notebook.FieldID:
+		case collection.FieldID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
 			}
-		case notebook.FieldName:
+		case collection.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
 			}
-		case notebook.FieldCreatedAt:
+		case collection.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case notebook.FieldUpdatedAt:
+		case collection.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case notebook.ForeignKeys[0]:
+		case collection.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field user_notebooks", values[i])
+				return fmt.Errorf("unexpected type %T for field user_collections", values[i])
 			} else if value.Valid {
-				_m.user_notebooks = new(string)
-				*_m.user_notebooks = value.String
+				_m.user_collections = new(string)
+				*_m.user_collections = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -126,44 +137,49 @@ func (_m *Notebook) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Notebook.
+// Value returns the ent.Value that was dynamically selected and assigned to the Collection.
 // This includes values selected through modifiers, order, etc.
-func (_m *Notebook) Value(name string) (ent.Value, error) {
+func (_m *Collection) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryCreator queries the "creator" edge of the Notebook entity.
-func (_m *Notebook) QueryCreator() *UserQuery {
-	return NewNotebookClient(_m.config).QueryCreator(_m)
+// QueryCreator queries the "creator" edge of the Collection entity.
+func (_m *Collection) QueryCreator() *UserQuery {
+	return NewCollectionClient(_m.config).QueryCreator(_m)
 }
 
-// QueryNotebookCards queries the "notebook_cards" edge of the Notebook entity.
-func (_m *Notebook) QueryNotebookCards() *NotebookCardQuery {
-	return NewNotebookClient(_m.config).QueryNotebookCards(_m)
+// QueryCollectionCards queries the "collection_cards" edge of the Collection entity.
+func (_m *Collection) QueryCollectionCards() *CollectionCardQuery {
+	return NewCollectionClient(_m.config).QueryCollectionCards(_m)
 }
 
-// Update returns a builder for updating this Notebook.
-// Note that you need to call Notebook.Unwrap() before calling this method if this Notebook
+// QueryStudyEvents queries the "study_events" edge of the Collection entity.
+func (_m *Collection) QueryStudyEvents() *StudyEventQuery {
+	return NewCollectionClient(_m.config).QueryStudyEvents(_m)
+}
+
+// Update returns a builder for updating this Collection.
+// Note that you need to call Collection.Unwrap() before calling this method if this Collection
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *Notebook) Update() *NotebookUpdateOne {
-	return NewNotebookClient(_m.config).UpdateOne(_m)
+func (_m *Collection) Update() *CollectionUpdateOne {
+	return NewCollectionClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the Notebook entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Collection entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *Notebook) Unwrap() *Notebook {
+func (_m *Collection) Unwrap() *Collection {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Notebook is not a transactional entity")
+		panic("ent: Collection is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *Notebook) String() string {
+func (_m *Collection) String() string {
 	var builder strings.Builder
-	builder.WriteString("Notebook(")
+	builder.WriteString("Collection(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
@@ -177,5 +193,5 @@ func (_m *Notebook) String() string {
 	return builder.String()
 }
 
-// Notebooks is a parsable slice of Notebook.
-type Notebooks []*Notebook
+// Collections is a parsable slice of Collection.
+type Collections []*Collection

@@ -39,11 +39,13 @@ type CardEdges struct {
 	Creator *User `json:"creator,omitempty"`
 	// Decks holds the value of the decks edge.
 	Decks []*Deck `json:"decks,omitempty"`
-	// NotebookCards holds the value of the notebook_cards edge.
-	NotebookCards []*NotebookCard `json:"notebook_cards,omitempty"`
+	// CollectionCards holds the value of the collection_cards edge.
+	CollectionCards []*CollectionCard `json:"collection_cards,omitempty"`
+	// StudyEvents holds the value of the study_events edge.
+	StudyEvents []*StudyEvent `json:"study_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -66,13 +68,22 @@ func (e CardEdges) DecksOrErr() ([]*Deck, error) {
 	return nil, &NotLoadedError{edge: "decks"}
 }
 
-// NotebookCardsOrErr returns the NotebookCards value or an error if the edge
+// CollectionCardsOrErr returns the CollectionCards value or an error if the edge
 // was not loaded in eager-loading.
-func (e CardEdges) NotebookCardsOrErr() ([]*NotebookCard, error) {
+func (e CardEdges) CollectionCardsOrErr() ([]*CollectionCard, error) {
 	if e.loadedTypes[2] {
-		return e.NotebookCards, nil
+		return e.CollectionCards, nil
 	}
-	return nil, &NotLoadedError{edge: "notebook_cards"}
+	return nil, &NotLoadedError{edge: "collection_cards"}
+}
+
+// StudyEventsOrErr returns the StudyEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CardEdges) StudyEventsOrErr() ([]*StudyEvent, error) {
+	if e.loadedTypes[3] {
+		return e.StudyEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "study_events"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -161,9 +172,14 @@ func (_m *Card) QueryDecks() *DeckQuery {
 	return NewCardClient(_m.config).QueryDecks(_m)
 }
 
-// QueryNotebookCards queries the "notebook_cards" edge of the Card entity.
-func (_m *Card) QueryNotebookCards() *NotebookCardQuery {
-	return NewCardClient(_m.config).QueryNotebookCards(_m)
+// QueryCollectionCards queries the "collection_cards" edge of the Card entity.
+func (_m *Card) QueryCollectionCards() *CollectionCardQuery {
+	return NewCardClient(_m.config).QueryCollectionCards(_m)
+}
+
+// QueryStudyEvents queries the "study_events" edge of the Card entity.
+func (_m *Card) QueryStudyEvents() *StudyEventQuery {
+	return NewCardClient(_m.config).QueryStudyEvents(_m)
 }
 
 // Update returns a builder for updating this Card.

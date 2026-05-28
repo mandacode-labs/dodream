@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mandacode-labs/dodream/ent/notebook"
+	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/predicate"
 )
 
-// NotebookDelete is the builder for deleting a Notebook entity.
-type NotebookDelete struct {
+// CollectionDelete is the builder for deleting a Collection entity.
+type CollectionDelete struct {
 	config
 	hooks    []Hook
-	mutation *NotebookMutation
+	mutation *CollectionMutation
 }
 
-// Where appends a list predicates to the NotebookDelete builder.
-func (_d *NotebookDelete) Where(ps ...predicate.Notebook) *NotebookDelete {
+// Where appends a list predicates to the CollectionDelete builder.
+func (_d *CollectionDelete) Where(ps ...predicate.Collection) *CollectionDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *NotebookDelete) Exec(ctx context.Context) (int, error) {
+func (_d *CollectionDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *NotebookDelete) ExecX(ctx context.Context) int {
+func (_d *CollectionDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *NotebookDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *NotebookDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(notebook.Table, sqlgraph.NewFieldSpec(notebook.FieldID, field.TypeString))
+func (_d *CollectionDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(collection.Table, sqlgraph.NewFieldSpec(collection.FieldID, field.TypeString))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *NotebookDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// NotebookDeleteOne is the builder for deleting a single Notebook entity.
-type NotebookDeleteOne struct {
-	_d *NotebookDelete
+// CollectionDeleteOne is the builder for deleting a single Collection entity.
+type CollectionDeleteOne struct {
+	_d *CollectionDelete
 }
 
-// Where appends a list predicates to the NotebookDelete builder.
-func (_d *NotebookDeleteOne) Where(ps ...predicate.Notebook) *NotebookDeleteOne {
+// Where appends a list predicates to the CollectionDelete builder.
+func (_d *CollectionDeleteOne) Where(ps ...predicate.Collection) *CollectionDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *NotebookDeleteOne) Exec(ctx context.Context) error {
+func (_d *CollectionDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{notebook.Label}
+		return &NotFoundError{collection.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *NotebookDeleteOne) ExecX(ctx context.Context) {
+func (_d *CollectionDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
