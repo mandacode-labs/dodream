@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
+	_ "github.com/lib/pq"
 	"github.com/mandacode-labs/dodream/ent"
 	"github.com/mandacode-labs/dodream/internal/api"
 	"github.com/spf13/cobra"
-	_ "github.com/lib/pq"
 )
 
 // runCmd represents the run command.
