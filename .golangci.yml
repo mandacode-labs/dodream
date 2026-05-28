@@ -12,20 +12,12 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-    - gofmt
-    - goimports
     - revive
     - misspell
     - whitespace
     - gocritic
 
   settings:
-    gofmt:
-      rewrite-rules:
-        - pattern: "interface{}"
-          replacement: "any"
-    goimports:
-      local-prefixes: github.com/mandacode-labs/dodream
     revive:
       rules:
         - name: exported
@@ -66,7 +58,8 @@ formatters:
         - pattern: "interface{}"
           replacement: "any"
     goimports:
-      local-prefixes: github.com/mandacode-labs/dodream
+      local-prefixes:
+        - github.com/mandacode-labs/dodream
   exclusions:
     generated: lax
     paths:
