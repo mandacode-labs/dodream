@@ -57,6 +57,30 @@ func (f DeckFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeckMutation", m)
 }
 
+// The EventProcessingFunc type is an adapter to allow the use of ordinary
+// function as EventProcessing mutator.
+type EventProcessingFunc func(context.Context, *ent.EventProcessingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EventProcessingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EventProcessingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventProcessingMutation", m)
+}
+
+// The StateFunc type is an adapter to allow the use of ordinary
+// function as State mutator.
+type StateFunc func(context.Context, *ent.StateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StateMutation", m)
+}
+
 // The StudyEventFunc type is an adapter to allow the use of ordinary
 // function as StudyEvent mutator.
 type StudyEventFunc func(context.Context, *ent.StudyEventMutation) (ent.Value, error)

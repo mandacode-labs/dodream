@@ -111,6 +111,61 @@ var (
 			},
 		},
 	}
+	// EventProcessingsColumns holds the columns for the "event_processings" table.
+	EventProcessingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "event_id", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "processor_id", Type: field.TypeString, Nullable: true},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// EventProcessingsTable holds the schema information for the "event_processings" table.
+	EventProcessingsTable = &schema.Table{
+		Name:       "event_processings",
+		Columns:    EventProcessingsColumns,
+		PrimaryKey: []*schema.Column{EventProcessingsColumns[0]},
+	}
+	// StatesColumns holds the columns for the "states" table.
+	StatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "next_review_at", Type: field.TypeTime},
+		{Name: "interval", Type: field.TypeFloat64},
+		{Name: "ease_factor", Type: field.TypeFloat64},
+		{Name: "total_reviews", Type: field.TypeInt, Default: 0},
+		{Name: "total_successful", Type: field.TypeInt, Default: 0},
+		{Name: "streak", Type: field.TypeInt, Default: 0},
+		{Name: "reviews_last_1d", Type: field.TypeInt, Default: 0},
+		{Name: "reviews_last_3d", Type: field.TypeInt, Default: 0},
+		{Name: "reviews_last_7d", Type: field.TypeInt, Default: 0},
+		{Name: "avg_response_time_ms", Type: field.TypeFloat64, Nullable: true},
+		{Name: "last_review_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "card_states", Type: field.TypeString},
+		{Name: "user_states", Type: field.TypeString},
+	}
+	// StatesTable holds the schema information for the "states" table.
+	StatesTable = &schema.Table{
+		Name:       "states",
+		Columns:    StatesColumns,
+		PrimaryKey: []*schema.Column{StatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "states_cards_states",
+				Columns:    []*schema.Column{StatesColumns[14]},
+				RefColumns: []*schema.Column{CardsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "states_users_states",
+				Columns:    []*schema.Column{StatesColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// StudyEventsColumns holds the columns for the "study_events" table.
 	StudyEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -200,6 +255,8 @@ var (
 		CollectionsTable,
 		CollectionCardsTable,
 		DecksTable,
+		EventProcessingsTable,
+		StatesTable,
 		StudyEventsTable,
 		UsersTable,
 		CardDecksTable,
@@ -213,6 +270,8 @@ func init() {
 	CollectionCardsTable.ForeignKeys[1].RefTable = CollectionsTable
 	CollectionCardsTable.ForeignKeys[2].RefTable = DecksTable
 	DecksTable.ForeignKeys[0].RefTable = UsersTable
+	StatesTable.ForeignKeys[0].RefTable = CardsTable
+	StatesTable.ForeignKeys[1].RefTable = UsersTable
 	StudyEventsTable.ForeignKeys[0].RefTable = CardsTable
 	StudyEventsTable.ForeignKeys[1].RefTable = CollectionsTable
 	StudyEventsTable.ForeignKeys[2].RefTable = DecksTable

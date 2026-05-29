@@ -16,6 +16,7 @@ import (
 	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/deck"
 	"github.com/mandacode-labs/dodream/ent/predicate"
+	"github.com/mandacode-labs/dodream/ent/state"
 	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
@@ -31,6 +32,7 @@ type UserQuery struct {
 	withDecks       *DeckQuery
 	withCollections *CollectionQuery
 	withStudyEvents *StudyEventQuery
+	withStates      *StateQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -148,6 +150,28 @@ func (_q *UserQuery) QueryStudyEvents() *StudyEventQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(studyevent.Table, studyevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.StudyEventsTable, user.StudyEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStates chains the current query on the "states" edge.
+func (_q *UserQuery) QueryStates() *StateQuery {
+	query := (&StateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(state.Table, state.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.StatesTable, user.StatesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -351,6 +375,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withDecks:       _q.withDecks.Clone(),
 		withCollections: _q.withCollections.Clone(),
 		withStudyEvents: _q.withStudyEvents.Clone(),
+		withStates:      _q.withStates.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -398,6 +423,17 @@ func (_q *UserQuery) WithStudyEvents(opts ...func(*StudyEventQuery)) *UserQuery 
 		opt(query)
 	}
 	_q.withStudyEvents = query
+	return _q
+}
+
+// WithStates tells the query-builder to eager-load the nodes that are connected to
+// the "states" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithStates(opts ...func(*StateQuery)) *UserQuery {
+	query := (&StateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStates = query
 	return _q
 }
 
@@ -479,11 +515,12 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withCards != nil,
 			_q.withDecks != nil,
 			_q.withCollections != nil,
 			_q.withStudyEvents != nil,
+			_q.withStates != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -529,6 +566,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadStudyEvents(ctx, query, nodes,
 			func(n *User) { n.Edges.StudyEvents = []*StudyEvent{} },
 			func(n *User, e *StudyEvent) { n.Edges.StudyEvents = append(n.Edges.StudyEvents, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStates; query != nil {
+		if err := _q.loadStates(ctx, query, nodes,
+			func(n *User) { n.Edges.States = []*State{} },
+			func(n *User, e *State) { n.Edges.States = append(n.Edges.States, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -654,6 +698,37 @@ func (_q *UserQuery) loadStudyEvents(ctx context.Context, query *StudyEventQuery
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_study_events" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadStates(ctx context.Context, query *StateQuery, nodes []*User, init func(*User), assign func(*User, *State)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.State(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.StatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_states
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_states" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_states" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

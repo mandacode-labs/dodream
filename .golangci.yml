@@ -43,6 +43,10 @@ linters:
           - all
         path: ent/
         text: ".*"
+      - linters:
+          - revive
+        path: internal/collection/
+        text: "exported: type name will be used as collection.CollectionCard"
     paths:
       - ent/
       - vendor/

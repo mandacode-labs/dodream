@@ -32,6 +32,8 @@ const (
 	EdgeCollectionCards = "collection_cards"
 	// EdgeStudyEvents holds the string denoting the study_events edge name in mutations.
 	EdgeStudyEvents = "study_events"
+	// EdgeStates holds the string denoting the states edge name in mutations.
+	EdgeStates = "states"
 	// Table holds the table name of the card in the database.
 	Table = "cards"
 	// CreatorTable is the table that holds the creator relation/edge.
@@ -60,6 +62,13 @@ const (
 	StudyEventsInverseTable = "study_events"
 	// StudyEventsColumn is the table column denoting the study_events relation/edge.
 	StudyEventsColumn = "card_study_events"
+	// StatesTable is the table that holds the states relation/edge.
+	StatesTable = "states"
+	// StatesInverseTable is the table name for the State entity.
+	// It exists in this package in order to avoid circular dependency with the "state" package.
+	StatesInverseTable = "states"
+	// StatesColumn is the table column denoting the states relation/edge.
+	StatesColumn = "card_states"
 )
 
 // Columns holds all SQL columns for card fields.
@@ -191,6 +200,20 @@ func ByStudyEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newStudyEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByStatesCount orders the results by states count.
+func ByStatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStatesStep(), opts...)
+	}
+}
+
+// ByStates orders the results by states terms.
+func ByStates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCreatorStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -217,5 +240,12 @@ func newStudyEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(StudyEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, StudyEventsTable, StudyEventsColumn),
+	)
+}
+func newStatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StatesTable, StatesColumn),
 	)
 }

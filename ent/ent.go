@@ -16,6 +16,8 @@ import (
 	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
+	"github.com/mandacode-labs/dodream/ent/eventprocessing"
+	"github.com/mandacode-labs/dodream/ent/state"
 	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
@@ -78,12 +80,14 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			card.Table:           card.ValidColumn,
-			collection.Table:     collection.ValidColumn,
-			collectioncard.Table: collectioncard.ValidColumn,
-			deck.Table:           deck.ValidColumn,
-			studyevent.Table:     studyevent.ValidColumn,
-			user.Table:           user.ValidColumn,
+			card.Table:            card.ValidColumn,
+			collection.Table:      collection.ValidColumn,
+			collectioncard.Table:  collectioncard.ValidColumn,
+			deck.Table:            deck.ValidColumn,
+			eventprocessing.Table: eventprocessing.ValidColumn,
+			state.Table:           state.ValidColumn,
+			studyevent.Table:      studyevent.ValidColumn,
+			user.Table:            user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

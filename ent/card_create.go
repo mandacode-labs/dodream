@@ -13,6 +13,7 @@ import (
 	"github.com/mandacode-labs/dodream/ent/card"
 	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
+	"github.com/mandacode-labs/dodream/ent/state"
 	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
@@ -146,6 +147,21 @@ func (_c *CardCreate) AddStudyEvents(v ...*StudyEvent) *CardCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddStudyEventIDs(ids...)
+}
+
+// AddStateIDs adds the "states" edge to the State entity by IDs.
+func (_c *CardCreate) AddStateIDs(ids ...string) *CardCreate {
+	_c.mutation.AddStateIDs(ids...)
+	return _c
+}
+
+// AddStates adds the "states" edges to the State entity.
+func (_c *CardCreate) AddStates(v ...*State) *CardCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStateIDs(ids...)
 }
 
 // Mutation returns the CardMutation object of the builder.
@@ -325,6 +341,22 @@ func (_c *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(studyevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.StatesTable,
+			Columns: []string{card.StatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(state.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

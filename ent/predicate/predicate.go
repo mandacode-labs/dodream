@@ -18,6 +18,12 @@ type CollectionCard func(*sql.Selector)
 // Deck is the predicate function for deck builders.
 type Deck func(*sql.Selector)
 
+// EventProcessing is the predicate function for eventprocessing builders.
+type EventProcessing func(*sql.Selector)
+
+// State is the predicate function for state builders.
+type State func(*sql.Selector)
+
 // StudyEvent is the predicate function for studyevent builders.
 type StudyEvent func(*sql.Selector)
 

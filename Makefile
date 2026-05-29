@@ -3,41 +3,56 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
-GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.12.2
+GOLANGCI_LINT_VERSION ?= v2.11.4
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 
-# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
-define go-install-tool
-@[ -f "$(1)-$(3)" ] && [ "$$(readlink "$(1)" 2>/dev/null)" = "$(1)-$(3)" ] || { \
-set -e; \
-package=$(2)@$(3) ;\
-echo "Downloading $${package}" ;\
-rm -f "$(1)" ;\
-GOBIN="$(LOCALBIN)" go install $${package} ;\
-mv "$(LOCALBIN)/$$(basename "$(1)")" "$(1)-$(3)" ;\
-} ;\
-ln -sf "$$(realpath "$(1)-$(3)")" "$(1)"
-endef
-
+# Use system golangci-lint if available and version matches, otherwise download
 .PHONY: golangci-lint
-golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
-$(GOLANGCI_LINT): $(LOCALBIN)
-	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+golangci-lint: ## Download golangci-lint locally if necessary.
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		SYSTEM_VER=$$(golangci-lint version --format=short 2>/dev/null || echo "unknown"); \
+		if [ "$$SYSTEM_VER" = "$(GOLANGCI_LINT_VERSION)" ]; then \
+			echo "Using system golangci-lint $(GOLANGCI_LINT_VERSION)"; \
+			exit 0; \
+		fi; \
+	fi; \
+	if [ ! -f "$(GOLANGCI_LINT)" ]; then \
+		echo "Downloading golangci-lint $(GOLANGCI_LINT_VERSION)..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_VERSION); \
+		mv "$(LOCALBIN)/golangci-lint" "$(GOLANGCI_LINT)"; \
+	fi
+
+define GOLANGCI_LINT_CMD
+$(shell if command -v golangci-lint >/dev/null 2>&1 && [ "$$(golangci-lint version --format=short 2>/dev/null)" = "$(GOLANGCI_LINT_VERSION)" ]; then echo golangci-lint; else echo $(GOLANGCI_LINT); fi)
+endef
 
 # Linting
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint linter
-	"$(GOLANGCI_LINT)" run
+	$(GOLANGCI_LINT_CMD) run
 
 .PHONY: fmt
 fmt: golangci-lint ## Run go fmt and fix lint issues
-	"$(GOLANGCI_LINT)" fmt
-	"$(GOLANGCI_LINT)" run --fix
+	$(GOLANGCI_LINT_CMD) fmt
+	$(GOLANGCI_LINT_CMD) run --fix
 
 # Code Generation
 .PHONY: ent-gen
 ent-gen: ## Generate ent code
 	go generate ./ent
+
+.PHONY: proto-gen
+proto-gen: ## Generate protobuf code
+	rm -rf pkg/proto/dodream
+	mkdir -p pkg/proto/dodream/engine/v1
+	protoc --proto_path=proto \
+		--go_out=pkg/proto --go_opt=paths=source_relative \
+		--go-grpc_out=pkg/proto --go-grpc_opt=paths=source_relative \
+		dodream/engine/v1/engine.proto
+
+.PHONY: ogen-gen
+ogen-gen: ## Generate OpenAPI code with ogen
+	ogen --config ogen.yaml --clean api/openapi/v1/openapi.yaml
 
 # Testing
 .PHONY: test
@@ -51,20 +66,20 @@ test-unit: ## Run unit tests only
 # Building
 .PHONY: build
 build: ## Build binary
-	go build -o bin/dodream-engine ./cmd/dodream-engine
+	go build -o bin/dodream ./cmd/dodream
 
 .PHONY: build-linux
 build-linux: ## Build binary for Linux amd64
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/dodream-engine-linux-amd64 ./cmd/dodream-engine
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/dodream-linux-amd64 ./cmd/dodream
 
 # Docker
 .PHONY: docker-build
 docker-build: ## Build Docker image locally
-	docker build -f build/docker/Dockerfile -t dodream-engine:latest .
+	docker build -f Dockerfile -t dodream:latest .
 
 .PHONY: docker-run
 docker-run: ## Run Docker container locally
-	docker run --rm -p 8080:8080 dodream-engine:latest
+	docker run --rm -p 8080:8080 dodream:latest
 
 # All-in-one
 .PHONY: all

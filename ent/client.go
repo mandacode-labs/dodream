@@ -19,6 +19,8 @@ import (
 	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
+	"github.com/mandacode-labs/dodream/ent/eventprocessing"
+	"github.com/mandacode-labs/dodream/ent/state"
 	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
@@ -36,6 +38,10 @@ type Client struct {
 	CollectionCard *CollectionCardClient
 	// Deck is the client for interacting with the Deck builders.
 	Deck *DeckClient
+	// EventProcessing is the client for interacting with the EventProcessing builders.
+	EventProcessing *EventProcessingClient
+	// State is the client for interacting with the State builders.
+	State *StateClient
 	// StudyEvent is the client for interacting with the StudyEvent builders.
 	StudyEvent *StudyEventClient
 	// User is the client for interacting with the User builders.
@@ -55,6 +61,8 @@ func (c *Client) init() {
 	c.Collection = NewCollectionClient(c.config)
 	c.CollectionCard = NewCollectionCardClient(c.config)
 	c.Deck = NewDeckClient(c.config)
+	c.EventProcessing = NewEventProcessingClient(c.config)
+	c.State = NewStateClient(c.config)
 	c.StudyEvent = NewStudyEventClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -147,14 +155,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		Card:           NewCardClient(cfg),
-		Collection:     NewCollectionClient(cfg),
-		CollectionCard: NewCollectionCardClient(cfg),
-		Deck:           NewDeckClient(cfg),
-		StudyEvent:     NewStudyEventClient(cfg),
-		User:           NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Card:            NewCardClient(cfg),
+		Collection:      NewCollectionClient(cfg),
+		CollectionCard:  NewCollectionCardClient(cfg),
+		Deck:            NewDeckClient(cfg),
+		EventProcessing: NewEventProcessingClient(cfg),
+		State:           NewStateClient(cfg),
+		StudyEvent:      NewStudyEventClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -172,14 +182,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		Card:           NewCardClient(cfg),
-		Collection:     NewCollectionClient(cfg),
-		CollectionCard: NewCollectionCardClient(cfg),
-		Deck:           NewDeckClient(cfg),
-		StudyEvent:     NewStudyEventClient(cfg),
-		User:           NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Card:            NewCardClient(cfg),
+		Collection:      NewCollectionClient(cfg),
+		CollectionCard:  NewCollectionCardClient(cfg),
+		Deck:            NewDeckClient(cfg),
+		EventProcessing: NewEventProcessingClient(cfg),
+		State:           NewStateClient(cfg),
+		StudyEvent:      NewStudyEventClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -209,7 +221,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Card, c.Collection, c.CollectionCard, c.Deck, c.StudyEvent, c.User,
+		c.Card, c.Collection, c.CollectionCard, c.Deck, c.EventProcessing, c.State,
+		c.StudyEvent, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -219,7 +232,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Card, c.Collection, c.CollectionCard, c.Deck, c.StudyEvent, c.User,
+		c.Card, c.Collection, c.CollectionCard, c.Deck, c.EventProcessing, c.State,
+		c.StudyEvent, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -236,6 +250,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CollectionCard.mutate(ctx, m)
 	case *DeckMutation:
 		return c.Deck.mutate(ctx, m)
+	case *EventProcessingMutation:
+		return c.EventProcessing.mutate(ctx, m)
+	case *StateMutation:
+		return c.State.mutate(ctx, m)
 	case *StudyEventMutation:
 		return c.StudyEvent.mutate(ctx, m)
 	case *UserMutation:
@@ -410,6 +428,22 @@ func (c *CardClient) QueryStudyEvents(_m *Card) *StudyEventQuery {
 			sqlgraph.From(card.Table, card.FieldID, id),
 			sqlgraph.To(studyevent.Table, studyevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, card.StudyEventsTable, card.StudyEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStates queries the states edge of a Card.
+func (c *CardClient) QueryStates(_m *Card) *StateQuery {
+	query := (&StateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(card.Table, card.FieldID, id),
+			sqlgraph.To(state.Table, state.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, card.StatesTable, card.StatesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1001,6 +1035,304 @@ func (c *DeckClient) mutate(ctx context.Context, m *DeckMutation) (Value, error)
 	}
 }
 
+// EventProcessingClient is a client for the EventProcessing schema.
+type EventProcessingClient struct {
+	config
+}
+
+// NewEventProcessingClient returns a client for the EventProcessing from the given config.
+func NewEventProcessingClient(c config) *EventProcessingClient {
+	return &EventProcessingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `eventprocessing.Hooks(f(g(h())))`.
+func (c *EventProcessingClient) Use(hooks ...Hook) {
+	c.hooks.EventProcessing = append(c.hooks.EventProcessing, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `eventprocessing.Intercept(f(g(h())))`.
+func (c *EventProcessingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EventProcessing = append(c.inters.EventProcessing, interceptors...)
+}
+
+// Create returns a builder for creating a EventProcessing entity.
+func (c *EventProcessingClient) Create() *EventProcessingCreate {
+	mutation := newEventProcessingMutation(c.config, OpCreate)
+	return &EventProcessingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EventProcessing entities.
+func (c *EventProcessingClient) CreateBulk(builders ...*EventProcessingCreate) *EventProcessingCreateBulk {
+	return &EventProcessingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EventProcessingClient) MapCreateBulk(slice any, setFunc func(*EventProcessingCreate, int)) *EventProcessingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EventProcessingCreateBulk{err: fmt.Errorf("calling to EventProcessingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EventProcessingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EventProcessingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EventProcessing.
+func (c *EventProcessingClient) Update() *EventProcessingUpdate {
+	mutation := newEventProcessingMutation(c.config, OpUpdate)
+	return &EventProcessingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EventProcessingClient) UpdateOne(_m *EventProcessing) *EventProcessingUpdateOne {
+	mutation := newEventProcessingMutation(c.config, OpUpdateOne, withEventProcessing(_m))
+	return &EventProcessingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EventProcessingClient) UpdateOneID(id int) *EventProcessingUpdateOne {
+	mutation := newEventProcessingMutation(c.config, OpUpdateOne, withEventProcessingID(id))
+	return &EventProcessingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EventProcessing.
+func (c *EventProcessingClient) Delete() *EventProcessingDelete {
+	mutation := newEventProcessingMutation(c.config, OpDelete)
+	return &EventProcessingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EventProcessingClient) DeleteOne(_m *EventProcessing) *EventProcessingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EventProcessingClient) DeleteOneID(id int) *EventProcessingDeleteOne {
+	builder := c.Delete().Where(eventprocessing.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EventProcessingDeleteOne{builder}
+}
+
+// Query returns a query builder for EventProcessing.
+func (c *EventProcessingClient) Query() *EventProcessingQuery {
+	return &EventProcessingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEventProcessing},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EventProcessing entity by its id.
+func (c *EventProcessingClient) Get(ctx context.Context, id int) (*EventProcessing, error) {
+	return c.Query().Where(eventprocessing.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EventProcessingClient) GetX(ctx context.Context, id int) *EventProcessing {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *EventProcessingClient) Hooks() []Hook {
+	return c.hooks.EventProcessing
+}
+
+// Interceptors returns the client interceptors.
+func (c *EventProcessingClient) Interceptors() []Interceptor {
+	return c.inters.EventProcessing
+}
+
+func (c *EventProcessingClient) mutate(ctx context.Context, m *EventProcessingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EventProcessingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EventProcessingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EventProcessingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EventProcessingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EventProcessing mutation op: %q", m.Op())
+	}
+}
+
+// StateClient is a client for the State schema.
+type StateClient struct {
+	config
+}
+
+// NewStateClient returns a client for the State from the given config.
+func NewStateClient(c config) *StateClient {
+	return &StateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `state.Hooks(f(g(h())))`.
+func (c *StateClient) Use(hooks ...Hook) {
+	c.hooks.State = append(c.hooks.State, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `state.Intercept(f(g(h())))`.
+func (c *StateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.State = append(c.inters.State, interceptors...)
+}
+
+// Create returns a builder for creating a State entity.
+func (c *StateClient) Create() *StateCreate {
+	mutation := newStateMutation(c.config, OpCreate)
+	return &StateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of State entities.
+func (c *StateClient) CreateBulk(builders ...*StateCreate) *StateCreateBulk {
+	return &StateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StateClient) MapCreateBulk(slice any, setFunc func(*StateCreate, int)) *StateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StateCreateBulk{err: fmt.Errorf("calling to StateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for State.
+func (c *StateClient) Update() *StateUpdate {
+	mutation := newStateMutation(c.config, OpUpdate)
+	return &StateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StateClient) UpdateOne(_m *State) *StateUpdateOne {
+	mutation := newStateMutation(c.config, OpUpdateOne, withState(_m))
+	return &StateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StateClient) UpdateOneID(id string) *StateUpdateOne {
+	mutation := newStateMutation(c.config, OpUpdateOne, withStateID(id))
+	return &StateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for State.
+func (c *StateClient) Delete() *StateDelete {
+	mutation := newStateMutation(c.config, OpDelete)
+	return &StateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StateClient) DeleteOne(_m *State) *StateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StateClient) DeleteOneID(id string) *StateDeleteOne {
+	builder := c.Delete().Where(state.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StateDeleteOne{builder}
+}
+
+// Query returns a query builder for State.
+func (c *StateClient) Query() *StateQuery {
+	return &StateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeState},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a State entity by its id.
+func (c *StateClient) Get(ctx context.Context, id string) (*State, error) {
+	return c.Query().Where(state.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StateClient) GetX(ctx context.Context, id string) *State {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a State.
+func (c *StateClient) QueryUser(_m *State) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(state.Table, state.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, state.UserTable, state.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCard queries the card edge of a State.
+func (c *StateClient) QueryCard(_m *State) *CardQuery {
+	query := (&CardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(state.Table, state.FieldID, id),
+			sqlgraph.To(card.Table, card.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, state.CardTable, state.CardColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *StateClient) Hooks() []Hook {
+	return c.hooks.State
+}
+
+// Interceptors returns the client interceptors.
+func (c *StateClient) Interceptors() []Interceptor {
+	return c.inters.State
+}
+
+func (c *StateClient) mutate(ctx context.Context, m *StateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown State mutation op: %q", m.Op())
+	}
+}
+
 // StudyEventClient is a client for the StudyEvent schema.
 type StudyEventClient struct {
 	config
@@ -1370,6 +1702,22 @@ func (c *UserClient) QueryStudyEvents(_m *User) *StudyEventQuery {
 	return query
 }
 
+// QueryStates queries the states edge of a User.
+func (c *UserClient) QueryStates(_m *User) *StateQuery {
+	query := (&StateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(state.Table, state.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.StatesTable, user.StatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1398,9 +1746,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Card, Collection, CollectionCard, Deck, StudyEvent, User []ent.Hook
+		Card, Collection, CollectionCard, Deck, EventProcessing, State, StudyEvent,
+		User []ent.Hook
 	}
 	inters struct {
-		Card, Collection, CollectionCard, Deck, StudyEvent, User []ent.Interceptor
+		Card, Collection, CollectionCard, Deck, EventProcessing, State, StudyEvent,
+		User []ent.Interceptor
 	}
 )

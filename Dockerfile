@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     -ldflags="-w -s \
               -X main.version=${VERSION} \
               -X main.gitCommit=${GIT_COMMIT}" \
-    -o dodream-engine ./cmd/dodream-engine
+    -o dodream ./cmd/dodream
 
 ############################
 # 2. Runtime Stage
@@ -55,7 +55,7 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-COPY --from=builder /build/dodream-engine /app/dodream-engine
+COPY --from=builder /build/dodream /app/dodream
 
 RUN mkdir -p /app/config && chown -R dodream:dodream /app
 
@@ -66,5 +66,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-ENTRYPOINT ["/app/dodream-engine"]
-CMD ["run"]
+ENTRYPOINT ["/app/dodream"]
+CMD ["api-server", "run"]

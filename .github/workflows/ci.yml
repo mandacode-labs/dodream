@@ -67,7 +67,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9.2.0
+        uses: golangci/golangci-lint-action@v9.2.1
         with:
           version: v2.12.2
           args: --timeout=5m
@@ -104,7 +104,7 @@ jobs:
       - name: Download dependencies
         run: go mod download
       - name: Build binary
-        run: go build -o bin/dodream-engine ./cmd/dodream-engine
+        run: go build -o bin/dodream ./cmd/dodream
 
   docker-build:
     name: Docker Build
@@ -120,6 +120,6 @@ jobs:
           context: .
           file: Dockerfile
           push: false
-          tags: dodream-engine:test
+          tags: dodream:test
           cache-from: type=gha
           cache-to: type=gha,mode=max

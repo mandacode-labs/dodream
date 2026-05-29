@@ -41,9 +41,11 @@ type UserEdges struct {
 	Collections []*Collection `json:"collections,omitempty"`
 	// StudyEvents holds the value of the study_events edge.
 	StudyEvents []*StudyEvent `json:"study_events,omitempty"`
+	// States holds the value of the states edge.
+	States []*State `json:"states,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // CardsOrErr returns the Cards value or an error if the edge
@@ -80,6 +82,15 @@ func (e UserEdges) StudyEventsOrErr() ([]*StudyEvent, error) {
 		return e.StudyEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "study_events"}
+}
+
+// StatesOrErr returns the States value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) StatesOrErr() ([]*State, error) {
+	if e.loadedTypes[4] {
+		return e.States, nil
+	}
+	return nil, &NotLoadedError{edge: "states"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -167,6 +178,11 @@ func (_m *User) QueryCollections() *CollectionQuery {
 // QueryStudyEvents queries the "study_events" edge of the User entity.
 func (_m *User) QueryStudyEvents() *StudyEventQuery {
 	return NewUserClient(_m.config).QueryStudyEvents(_m)
+}
+
+// QueryStates queries the "states" edge of the User entity.
+func (_m *User) QueryStates() *StateQuery {
+	return NewUserClient(_m.config).QueryStates(_m)
 }
 
 // Update returns a builder for updating this User.

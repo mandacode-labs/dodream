@@ -45,9 +45,11 @@ type CardEdges struct {
 	CollectionCards []*CollectionCard `json:"collection_cards,omitempty"`
 	// StudyEvents holds the value of the study_events edge.
 	StudyEvents []*StudyEvent `json:"study_events,omitempty"`
+	// States holds the value of the states edge.
+	States []*State `json:"states,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -86,6 +88,15 @@ func (e CardEdges) StudyEventsOrErr() ([]*StudyEvent, error) {
 		return e.StudyEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "study_events"}
+}
+
+// StatesOrErr returns the States value or an error if the edge
+// was not loaded in eager-loading.
+func (e CardEdges) StatesOrErr() ([]*State, error) {
+	if e.loadedTypes[4] {
+		return e.States, nil
+	}
+	return nil, &NotLoadedError{edge: "states"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -188,6 +199,11 @@ func (_m *Card) QueryCollectionCards() *CollectionCardQuery {
 // QueryStudyEvents queries the "study_events" edge of the Card entity.
 func (_m *Card) QueryStudyEvents() *StudyEventQuery {
 	return NewCardClient(_m.config).QueryStudyEvents(_m)
+}
+
+// QueryStates queries the "states" edge of the Card entity.
+func (_m *Card) QueryStates() *StateQuery {
+	return NewCardClient(_m.config).QueryStates(_m)
 }
 
 // Update returns a builder for updating this Card.

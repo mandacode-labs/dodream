@@ -31,5 +31,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("decks", Deck.Type),
 		edge.To("collections", Collection.Type),
 		edge.To("study_events", StudyEvent.Type),
+		edge.To("states", State.Type),
 	}
 }

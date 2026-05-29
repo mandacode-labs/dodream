@@ -1,0 +1,40 @@
+with-expecter: true
+all: false
+keeptree: true
+packages:
+  github.com/mandacode-labs/dodream/internal/user:
+    config:
+      dir: "{{.PackagePath}}/mocks"
+      outpkg: "mocks"
+    interfaces:
+      Repository:
+  github.com/mandacode-labs/dodream/internal/card:
+    config:
+      dir: "{{.PackagePath}}/mocks"
+      outpkg: "mocks"
+    interfaces:
+      Repository:
+  github.com/mandacode-labs/dodream/internal/deck:
+    config:
+      dir: "{{.PackagePath}}/mocks"
+      outpkg: "mocks"
+    interfaces:
+      Repository:
+  github.com/mandacode-labs/dodream/internal/collection:
+    config:
+      dir: "{{.PackagePath}}/mocks"
+      outpkg: "mocks"
+    interfaces:
+      Repository:
+  github.com/mandacode-labs/dodream/internal/studyevent:
+    config:
+      dir: "{{.PackagePath}}/mocks"
+      outpkg: "mocks"
+    interfaces:
+      Repository:
+  github.com/mandacode-labs/dodream/internal/state:
+    config:
+      dir: "{{.PackagePath}}/mocks"
+      outpkg: "mocks"
+    interfaces:
+      Repository:

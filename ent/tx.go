@@ -20,6 +20,10 @@ type Tx struct {
 	CollectionCard *CollectionCardClient
 	// Deck is the client for interacting with the Deck builders.
 	Deck *DeckClient
+	// EventProcessing is the client for interacting with the EventProcessing builders.
+	EventProcessing *EventProcessingClient
+	// State is the client for interacting with the State builders.
+	State *StateClient
 	// StudyEvent is the client for interacting with the StudyEvent builders.
 	StudyEvent *StudyEventClient
 	// User is the client for interacting with the User builders.
@@ -159,6 +163,8 @@ func (tx *Tx) init() {
 	tx.Collection = NewCollectionClient(tx.config)
 	tx.CollectionCard = NewCollectionCardClient(tx.config)
 	tx.Deck = NewDeckClient(tx.config)
+	tx.EventProcessing = NewEventProcessingClient(tx.config)
+	tx.State = NewStateClient(tx.config)
 	tx.StudyEvent = NewStudyEventClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

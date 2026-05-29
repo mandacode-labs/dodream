@@ -9,7 +9,9 @@ import (
 	"github.com/mandacode-labs/dodream/ent/collection"
 	"github.com/mandacode-labs/dodream/ent/collectioncard"
 	"github.com/mandacode-labs/dodream/ent/deck"
+	"github.com/mandacode-labs/dodream/ent/eventprocessing"
 	"github.com/mandacode-labs/dodream/ent/schema"
+	"github.com/mandacode-labs/dodream/ent/state"
 	"github.com/mandacode-labs/dodream/ent/studyevent"
 	"github.com/mandacode-labs/dodream/ent/user"
 )
@@ -78,6 +80,52 @@ func init() {
 	deck.DefaultUpdatedAt = deckDescUpdatedAt.Default.(func() time.Time)
 	// deck.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	deck.UpdateDefaultUpdatedAt = deckDescUpdatedAt.UpdateDefault.(func() time.Time)
+	eventprocessingFields := schema.EventProcessing{}.Fields()
+	_ = eventprocessingFields
+	// eventprocessingDescStatus is the schema descriptor for status field.
+	eventprocessingDescStatus := eventprocessingFields[1].Descriptor()
+	// eventprocessing.DefaultStatus holds the default value on creation for the status field.
+	eventprocessing.DefaultStatus = eventprocessingDescStatus.Default.(string)
+	// eventprocessingDescCreatedAt is the schema descriptor for created_at field.
+	eventprocessingDescCreatedAt := eventprocessingFields[5].Descriptor()
+	// eventprocessing.DefaultCreatedAt holds the default value on creation for the created_at field.
+	eventprocessing.DefaultCreatedAt = eventprocessingDescCreatedAt.Default.(func() time.Time)
+	stateFields := schema.State{}.Fields()
+	_ = stateFields
+	// stateDescTotalReviews is the schema descriptor for total_reviews field.
+	stateDescTotalReviews := stateFields[4].Descriptor()
+	// state.DefaultTotalReviews holds the default value on creation for the total_reviews field.
+	state.DefaultTotalReviews = stateDescTotalReviews.Default.(int)
+	// stateDescTotalSuccessful is the schema descriptor for total_successful field.
+	stateDescTotalSuccessful := stateFields[5].Descriptor()
+	// state.DefaultTotalSuccessful holds the default value on creation for the total_successful field.
+	state.DefaultTotalSuccessful = stateDescTotalSuccessful.Default.(int)
+	// stateDescStreak is the schema descriptor for streak field.
+	stateDescStreak := stateFields[6].Descriptor()
+	// state.DefaultStreak holds the default value on creation for the streak field.
+	state.DefaultStreak = stateDescStreak.Default.(int)
+	// stateDescReviewsLast1d is the schema descriptor for reviews_last_1d field.
+	stateDescReviewsLast1d := stateFields[7].Descriptor()
+	// state.DefaultReviewsLast1d holds the default value on creation for the reviews_last_1d field.
+	state.DefaultReviewsLast1d = stateDescReviewsLast1d.Default.(int)
+	// stateDescReviewsLast3d is the schema descriptor for reviews_last_3d field.
+	stateDescReviewsLast3d := stateFields[8].Descriptor()
+	// state.DefaultReviewsLast3d holds the default value on creation for the reviews_last_3d field.
+	state.DefaultReviewsLast3d = stateDescReviewsLast3d.Default.(int)
+	// stateDescReviewsLast7d is the schema descriptor for reviews_last_7d field.
+	stateDescReviewsLast7d := stateFields[9].Descriptor()
+	// state.DefaultReviewsLast7d holds the default value on creation for the reviews_last_7d field.
+	state.DefaultReviewsLast7d = stateDescReviewsLast7d.Default.(int)
+	// stateDescCreatedAt is the schema descriptor for created_at field.
+	stateDescCreatedAt := stateFields[12].Descriptor()
+	// state.DefaultCreatedAt holds the default value on creation for the created_at field.
+	state.DefaultCreatedAt = stateDescCreatedAt.Default.(func() time.Time)
+	// stateDescUpdatedAt is the schema descriptor for updated_at field.
+	stateDescUpdatedAt := stateFields[13].Descriptor()
+	// state.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	state.DefaultUpdatedAt = stateDescUpdatedAt.Default.(func() time.Time)
+	// state.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	state.UpdateDefaultUpdatedAt = stateDescUpdatedAt.UpdateDefault.(func() time.Time)
 	studyeventFields := schema.StudyEvent{}.Fields()
 	_ = studyeventFields
 	// studyeventDescEventType is the schema descriptor for event_type field.
