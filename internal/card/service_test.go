@@ -1,4 +1,4 @@
-package card
+package card_test
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mandacode-labs/dodream/internal/card"
+	"github.com/mandacode-labs/dodream/internal/card/mocks"
 	"github.com/mandacode-labs/dodream/internal/errs"
 )
 
@@ -18,7 +20,7 @@ func TestService_Create(t *testing.T) {
 		hint      string
 		content   string
 		creator   string
-		mockSetup func(repo *MockRepository)
+		mockSetup func(repo *mocks.MockRepository)
 		wantErr   bool
 		errType   errs.ErrorType
 	}{
@@ -28,9 +30,9 @@ func TestService_Create(t *testing.T) {
 			hint:     "A programming language",
 			content:  "Go is a statically typed, compiled programming language.",
 			creator:  "user-123",
-			mockSetup: func(repo *MockRepository) {
+			mockSetup: func(repo *mocks.MockRepository) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("*card.Card")).
-					Return(&Card{}, nil)
+					Return(&card.Card{}, nil)
 			},
 			wantErr: false,
 		},
@@ -40,7 +42,7 @@ func TestService_Create(t *testing.T) {
 			hint:      "hint",
 			content:   "content",
 			creator:   "user-123",
-			mockSetup: func(repo *MockRepository) {},
+			mockSetup: func(repo *mocks.MockRepository) {},
 			wantErr:   true,
 			errType:   errs.ErrInvalidInput,
 		},
@@ -50,7 +52,7 @@ func TestService_Create(t *testing.T) {
 			hint:      "hint",
 			content:   "",
 			creator:   "user-123",
-			mockSetup: func(repo *MockRepository) {},
+			mockSetup: func(repo *mocks.MockRepository) {},
 			wantErr:   true,
 			errType:   errs.ErrInvalidInput,
 		},
@@ -58,10 +60,10 @@ func TestService_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewMockRepository(t)
+			repo := mocks.NewMockRepository(t)
 			tt.mockSetup(repo)
 
-			svc := NewService(repo)
+			svc := card.NewService(repo)
 			_, err := svc.Create(context.Background(), tt.question, tt.hint, tt.content, tt.creator)
 
 			if tt.wantErr {
@@ -77,25 +79,25 @@ func TestService_Create(t *testing.T) {
 func TestService_GetByID(t *testing.T) {
 	tests := []struct {
 		name      string
-		id        ID
-		mockSetup func(repo *MockRepository)
+		id        card.ID
+		mockSetup func(repo *mocks.MockRepository)
 		wantErr   bool
 		errType   errs.ErrorType
 	}{
 		{
 			name: "card found",
-			id:   ID("card-123"),
-			mockSetup: func(repo *MockRepository) {
-				repo.EXPECT().GetByID(mock.Anything, ID("card-123")).
-					Return(&Card{}, nil)
+			id:   card.ID("card-123"),
+			mockSetup: func(repo *mocks.MockRepository) {
+				repo.EXPECT().GetByID(mock.Anything, card.ID("card-123")).
+					Return(&card.Card{}, nil)
 			},
 			wantErr: false,
 		},
 		{
 			name: "card not found",
-			id:   ID("card-123"),
-			mockSetup: func(repo *MockRepository) {
-				repo.EXPECT().GetByID(mock.Anything, ID("card-123")).
+			id:   card.ID("card-123"),
+			mockSetup: func(repo *mocks.MockRepository) {
+				repo.EXPECT().GetByID(mock.Anything, card.ID("card-123")).
 					Return(nil, errs.New(errs.ErrNotFound, "not found"))
 			},
 			wantErr: true,
@@ -105,10 +107,10 @@ func TestService_GetByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewMockRepository(t)
+			repo := mocks.NewMockRepository(t)
 			tt.mockSetup(repo)
 
-			svc := NewService(repo)
+			svc := card.NewService(repo)
 			_, err := svc.GetByID(context.Background(), tt.id)
 
 			if tt.wantErr {

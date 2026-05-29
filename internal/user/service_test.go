@@ -1,4 +1,4 @@
-package user
+package user_test
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mandacode-labs/dodream/internal/errs"
+	"github.com/mandacode-labs/dodream/internal/user"
+	"github.com/mandacode-labs/dodream/internal/user/mocks"
 )
 
 func TestService_Create(t *testing.T) {
@@ -16,7 +18,7 @@ func TestService_Create(t *testing.T) {
 		name       string
 		nickname   string
 		providerID string
-		mockSetup  func(repo *MockRepository)
+		mockSetup  func(repo *mocks.MockRepository)
 		wantErr    bool
 		errType    errs.ErrorType
 	}{
@@ -24,9 +26,9 @@ func TestService_Create(t *testing.T) {
 			name:       "valid user",
 			nickname:   "testuser",
 			providerID: "provider_123",
-			mockSetup: func(repo *MockRepository) {
+			mockSetup: func(repo *mocks.MockRepository) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("*user.User")).
-					Return(&User{}, nil)
+					Return(&user.User{}, nil)
 			},
 			wantErr: false,
 		},
@@ -34,7 +36,7 @@ func TestService_Create(t *testing.T) {
 			name:       "empty nickname",
 			nickname:   "",
 			providerID: "provider_123",
-			mockSetup:  func(repo *MockRepository) {},
+			mockSetup:  func(repo *mocks.MockRepository) {},
 			wantErr:    true,
 			errType:    errs.ErrInvalidInput,
 		},
@@ -42,10 +44,10 @@ func TestService_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewMockRepository(t)
+			repo := mocks.NewMockRepository(t)
 			tt.mockSetup(repo)
 
-			svc := NewService(repo)
+			svc := user.NewService(repo)
 			_, err := svc.Create(context.Background(), tt.nickname, tt.providerID)
 
 			if tt.wantErr {
@@ -61,25 +63,25 @@ func TestService_Create(t *testing.T) {
 func TestService_GetByID(t *testing.T) {
 	tests := []struct {
 		name      string
-		id        ID
-		mockSetup func(repo *MockRepository)
+		id        user.ID
+		mockSetup func(repo *mocks.MockRepository)
 		wantErr   bool
 		errType   errs.ErrorType
 	}{
 		{
 			name: "user found",
-			id:   ID("user-123"),
-			mockSetup: func(repo *MockRepository) {
-				repo.EXPECT().GetByID(mock.Anything, ID("user-123")).
-					Return(&User{}, nil)
+			id:   user.ID("user-123"),
+			mockSetup: func(repo *mocks.MockRepository) {
+				repo.EXPECT().GetByID(mock.Anything, user.ID("user-123")).
+					Return(&user.User{}, nil)
 			},
 			wantErr: false,
 		},
 		{
 			name: "user not found",
-			id:   ID("user-123"),
-			mockSetup: func(repo *MockRepository) {
-				repo.EXPECT().GetByID(mock.Anything, ID("user-123")).
+			id:   user.ID("user-123"),
+			mockSetup: func(repo *mocks.MockRepository) {
+				repo.EXPECT().GetByID(mock.Anything, user.ID("user-123")).
 					Return(nil, errs.New(errs.ErrNotFound, "not found"))
 			},
 			wantErr: true,
@@ -89,10 +91,10 @@ func TestService_GetByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewMockRepository(t)
+			repo := mocks.NewMockRepository(t)
 			tt.mockSetup(repo)
 
-			svc := NewService(repo)
+			svc := user.NewService(repo)
 			_, err := svc.GetByID(context.Background(), tt.id)
 
 			if tt.wantErr {

@@ -32,7 +32,7 @@ packages:
       outpkg: "mocks"
     interfaces:
       Repository:
-  github.com/mandacode-labs/dodream/internal/state:
+  github.com/mandacode-labs/dodream/internal/engine/state:
     config:
       dir: "{{.PackagePath}}/mocks"
       outpkg: "mocks"

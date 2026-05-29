@@ -52,16 +52,31 @@ proto-gen: ## Generate protobuf code
 
 .PHONY: ogen-gen
 ogen-gen: ## Generate OpenAPI code with ogen
-	ogen --config ogen.yaml --clean api/openapi/v1/openapi.yaml
+	rm -rf pkg/oas
+	ogen --clean api/openapi/v1/openapi.yaml
+	mkdir -p pkg/oas
+	mv api/openapi/v1/oas_*.go pkg/oas/
+	sed -i 's/package api/package oas/g' pkg/oas/*.go
+
+.PHONY: mock-gen
+mock-gen: ## Generate mocks with mockery
+	~/go/bin/mockery
 
 # Testing
 .PHONY: test
-test: ## Run all tests
-	go test -v -race -coverprofile=cover.out ./...
+test: ## Run unit tests only (excludes integration tests)
+	go test -v -race -coverprofile=cover.out $$(go list ./... | grep -v /test)
 
 .PHONY: test-unit
-test-unit: ## Run unit tests only
-	go test -v -race $$(go list ./... | grep -v /test) --coverprofile=cover.out
+test-unit: ## Run unit tests only (alias for test)
+	$(MAKE) test
+
+.PHONY: test-integration
+test-integration: ## Run integration tests with Docker
+	go test -v -race -tags=integration ./test/integration/...
+
+.PHONY: test-all
+test-all: test test-integration ## Run all tests including integration
 
 # Building
 .PHONY: build

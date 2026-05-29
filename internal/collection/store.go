@@ -20,6 +20,9 @@ func NewStore(client *ent.Client) *Store {
 	return &Store{client: client}
 }
 
+// Compile-time check that Store implements Repository.
+var _ Repository = (*Store)(nil)
+
 func mapEntError(op string, err error) error {
 	switch {
 	case ent.IsNotFound(err):
@@ -37,7 +40,7 @@ func (s *Store) Create(ctx context.Context, c *Collection) (*Collection, error) 
 	created, err := s.client.Collection.Create().
 		SetID(c.ID().String()).
 		SetName(c.Name()).
-		SetCreatorID(c.Creator()).
+		SetCreatorID(c.CreatorID()).
 		Save(ctx)
 	if err != nil {
 		return nil, mapEntError(op, err)
@@ -45,7 +48,7 @@ func (s *Store) Create(ctx context.Context, c *Collection) (*Collection, error) 
 	return NewWithID(
 		ID(created.ID),
 		created.Name,
-		c.Creator(),
+		c.CreatorID(),
 		created.CreatedAt,
 		created.UpdatedAt,
 	), nil
@@ -82,7 +85,7 @@ func (s *Store) Update(ctx context.Context, c *Collection) (*Collection, error) 
 	return NewWithID(
 		ID(updated.ID),
 		updated.Name,
-		c.Creator(),
+		c.CreatorID(),
 		updated.CreatedAt,
 		updated.UpdatedAt,
 	), nil

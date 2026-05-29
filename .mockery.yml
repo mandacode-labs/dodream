@@ -1,17 +1,11 @@
 all: false
-dir: '{{.InterfaceDir}}'
-filename: mocks_test.go
-force-file-write: true
-formatter: goimports
-generate: true
-include-auto-generated: false
-log-level: info
-structname: 'Mock{{.InterfaceName}}'
-pkgname: '{{.SrcPackageName}}'
-recursive: false
-require-template-schema-exists: true
+dir: "{{.InterfaceDir}}/mocks"
+filename: "mock_{{lower .InterfaceName}}.go"
+structname: "{{.InterfaceName}}Mock"
+pkgname: "{{.SrcPackageName}}mocks"
 template: testify
-template-schema: '{{.Template}}.schema.json'
+template-data:
+  unroll-variadic: true
 packages:
   github.com/mandacode-labs/dodream/internal/user:
     interfaces:
@@ -28,6 +22,6 @@ packages:
   github.com/mandacode-labs/dodream/internal/studyevent:
     interfaces:
       Repository:
-  github.com/mandacode-labs/dodream/internal/state:
+  github.com/mandacode-labs/dodream/internal/engine/state:
     interfaces:
       Repository:

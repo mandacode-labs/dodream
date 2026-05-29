@@ -21,20 +21,20 @@ type Card struct {
 	question  string
 	hint      string
 	content   string
-	creator   string // user ID as string to avoid import cycle
+	creatorID string // user ID as string to avoid import cycle
 	createdAt time.Time
 	updatedAt time.Time
 }
 
 // New creates a new Card with the given question, hint, content and creator.
-func New(question string, hint string, content string, creator string) *Card {
+func New(question string, hint string, content string, creatorID string) *Card {
 	now := time.Now()
 	return &Card{
 		id:        ID(uuid.New().String()),
 		question:  question,
 		hint:      hint,
 		content:   content,
-		creator:   creator,
+		creatorID: creatorID,
 		createdAt: now,
 		updatedAt: now,
 	}
@@ -60,9 +60,9 @@ func (c *Card) Content() string {
 	return c.content
 }
 
-// Creator returns the user ID who created this card.
-func (c *Card) Creator() string {
-	return c.creator
+// CreatorID returns the user ID who created this card.
+func (c *Card) CreatorID() string {
+	return c.creatorID
 }
 
 // CreatedAt returns the timestamp when the card was created.
@@ -94,13 +94,13 @@ func (c *Card) SetContent(content string) {
 }
 
 // NewWithID creates a Card from database values.
-func NewWithID(id ID, question string, hint string, content string, creator string, createdAt, updatedAt time.Time) *Card {
+func NewWithID(id ID, question string, hint string, content string, creatorID string, createdAt, updatedAt time.Time) *Card {
 	return &Card{
 		id:        id,
 		question:  question,
 		hint:      hint,
 		content:   content,
-		creator:   creator,
+		creatorID: creatorID,
 		createdAt: createdAt,
 		updatedAt: updatedAt,
 	}

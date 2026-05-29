@@ -19,18 +19,18 @@ func (id ID) String() string {
 type Collection struct {
 	id        ID
 	name      string
-	creator   string // user ID as string to avoid import cycle
+	creatorID string // user ID as string to avoid import cycle
 	createdAt time.Time
 	updatedAt time.Time
 }
 
 // New creates a new Collection with the given name and creator.
-func New(name string, creator string) *Collection {
+func New(name string, creatorID string) *Collection {
 	now := time.Now()
 	return &Collection{
 		id:        ID(uuid.New().String()),
 		name:      name,
-		creator:   creator,
+		creatorID: creatorID,
 		createdAt: now,
 		updatedAt: now,
 	}
@@ -46,9 +46,9 @@ func (c *Collection) Name() string {
 	return c.name
 }
 
-// Creator returns the user ID who created this collection.
-func (c *Collection) Creator() string {
-	return c.creator
+// CreatorID returns the user ID who created this collection.
+func (c *Collection) CreatorID() string {
+	return c.creatorID
 }
 
 // CreatedAt returns the timestamp when the collection was created.
@@ -68,11 +68,11 @@ func (c *Collection) SetName(name string) {
 }
 
 // NewWithID creates a Collection from database values.
-func NewWithID(id ID, name string, creator string, createdAt, updatedAt time.Time) *Collection {
+func NewWithID(id ID, name string, creatorID string, createdAt, updatedAt time.Time) *Collection {
 	return &Collection{
 		id:        id,
 		name:      name,
-		creator:   creator,
+		creatorID: creatorID,
 		createdAt: createdAt,
 		updatedAt: updatedAt,
 	}

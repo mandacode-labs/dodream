@@ -19,18 +19,18 @@ func (id ID) String() string {
 type Deck struct {
 	id        ID
 	name      string
-	creator   string // user ID as string to avoid import cycle
+	creatorID string // user ID as string to avoid import cycle
 	createdAt time.Time
 	updatedAt time.Time
 }
 
 // New creates a new Deck with the given name and creator.
-func New(name string, creator string) *Deck {
+func New(name string, creatorID string) *Deck {
 	now := time.Now()
 	return &Deck{
 		id:        ID(uuid.New().String()),
 		name:      name,
-		creator:   creator,
+		creatorID: creatorID,
 		createdAt: now,
 		updatedAt: now,
 	}
@@ -46,9 +46,9 @@ func (d *Deck) Name() string {
 	return d.name
 }
 
-// Creator returns the user ID who created this deck.
-func (d *Deck) Creator() string {
-	return d.creator
+// CreatorID returns the user ID who created this deck.
+func (d *Deck) CreatorID() string {
+	return d.creatorID
 }
 
 // CreatedAt returns the timestamp when the deck was created.
@@ -68,11 +68,11 @@ func (d *Deck) SetName(name string) {
 }
 
 // NewWithID creates a Deck from database values.
-func NewWithID(id ID, name string, creator string, createdAt, updatedAt time.Time) *Deck {
+func NewWithID(id ID, name string, creatorID string, createdAt, updatedAt time.Time) *Deck {
 	return &Deck{
 		id:        id,
 		name:      name,
-		creator:   creator,
+		creatorID: creatorID,
 		createdAt: createdAt,
 		updatedAt: updatedAt,
 	}

@@ -49,6 +49,7 @@ linters:
         text: "exported: type name will be used as collection.CollectionCard"
     paths:
       - ent/
+      - pkg/oas/
       - vendor/
 
 formatters:
@@ -67,4 +68,5 @@ formatters:
     generated: lax
     paths:
       - ent/
+      - pkg/oas/
       - vendor/

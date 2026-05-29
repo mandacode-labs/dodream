@@ -21,6 +21,9 @@ func NewStore(client *ent.Client) *Store {
 	return &Store{client: client}
 }
 
+// Compile-time check that Store implements Repository.
+var _ Repository = (*Store)(nil)
+
 func mapEntError(op string, err error) error {
 	if ent.IsNotFound(err) {
 		return errs.Wrap(errs.ErrNotFound, "not found", err)

@@ -18,6 +18,9 @@ func NewStore(client *ent.Client) *Store {
 	return &Store{client: client}
 }
 
+// Compile-time check that Store implements Repository.
+var _ Repository = (*Store)(nil)
+
 func mapEntError(op string, err error) error {
 	if ent.IsNotFound(err) {
 		return errs.Wrap(errs.ErrNotFound, op, err)
@@ -35,7 +38,7 @@ func (s *Store) Create(ctx context.Context, c *Card) (*Card, error) {
 		SetQuestion(c.Question()).
 		SetHint(c.Hint()).
 		SetContent(c.Content()).
-		SetCreatorID(c.Creator()).
+		SetCreatorID(c.CreatorID()).
 		Save(ctx)
 	if err != nil {
 		return nil, mapEntError("create card", err)
@@ -45,7 +48,7 @@ func (s *Store) Create(ctx context.Context, c *Card) (*Card, error) {
 		created.Question,
 		created.Hint,
 		created.Content,
-		c.Creator(),
+		c.CreatorID(),
 		created.CreatedAt,
 		created.UpdatedAt,
 	), nil
@@ -86,7 +89,7 @@ func (s *Store) Update(ctx context.Context, c *Card) (*Card, error) {
 		updated.Question,
 		updated.Hint,
 		updated.Content,
-		c.Creator(),
+		c.CreatorID(),
 		updated.CreatedAt,
 		updated.UpdatedAt,
 	), nil
