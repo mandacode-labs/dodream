@@ -1,0 +1,606 @@
+openapi: 3.0.3
+info:
+  title: Dodream API
+  description: Flashcard SRS API
+  version: 1.0.0
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/users:
+    get:
+      operationId: listUsers
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/v1/users/{id}:
+    get:
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    put:
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    delete:
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          description: User not found
+
+  /api/v1/cards:
+    get:
+      operationId: listCards
+      responses:
+        '200':
+          description: List of cards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+    post:
+      operationId: createCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Created card
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+
+  /api/v1/cards/{id}:
+    get:
+      operationId: getCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Card found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          description: Card not found
+    put:
+      operationId: updateCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCardRequest'
+      responses:
+        '200':
+          description: Updated card
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          description: Card not found
+    delete:
+      operationId: deleteCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Card deleted
+        '404':
+          description: Card not found
+
+  /api/v1/decks:
+    get:
+      operationId: listDecks
+      responses:
+        '200':
+          description: List of decks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deck'
+    post:
+      operationId: createDeck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeckRequest'
+      responses:
+        '201':
+          description: Created deck
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deck'
+
+  /api/v1/decks/{id}:
+    get:
+      operationId: getDeck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deck found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deck'
+        '404':
+          description: Deck not found
+    put:
+      operationId: updateDeck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeckRequest'
+      responses:
+        '200':
+          description: Updated deck
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deck'
+        '404':
+          description: Deck not found
+    delete:
+      operationId: deleteDeck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deck deleted
+        '404':
+          description: Deck not found
+
+  /api/v1/collections:
+    get:
+      operationId: listCollections
+      responses:
+        '200':
+          description: List of collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collection'
+    post:
+      operationId: createCollection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionRequest'
+      responses:
+        '201':
+          description: Created collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+
+  /api/v1/collections/{id}:
+    get:
+      operationId: getCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '404':
+          description: Collection not found
+    put:
+      operationId: updateCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCollectionRequest'
+      responses:
+        '200':
+          description: Updated collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '404':
+          description: Collection not found
+    delete:
+      operationId: deleteCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Collection deleted
+        '404':
+          description: Collection not found
+
+  /api/v1/study-events:
+    post:
+      operationId: createStudyEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudyEventRequest'
+      responses:
+        '201':
+          description: Created study event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyEvent'
+
+  /api/v1/study/next-card:
+    get:
+      operationId: getNextCard
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: collection_id
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Next cards to study
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextCardsResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        provider_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required: [nickname, provider_id]
+      properties:
+        nickname:
+          type: string
+        provider_id:
+          type: string
+
+    UpdateUserRequest:
+      type: object
+      required: [nickname, provider_id]
+      properties:
+        nickname:
+          type: string
+        provider_id:
+          type: string
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        hint:
+          type: string
+        content:
+          type: string
+        creator:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCardRequest:
+      type: object
+      required: [content, creator]
+      properties:
+        question:
+          type: string
+        hint:
+          type: string
+        content:
+          type: string
+        creator:
+          type: string
+
+    UpdateCardRequest:
+      type: object
+      required: [content]
+      properties:
+        question:
+          type: string
+        hint:
+          type: string
+        content:
+          type: string
+
+    Deck:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        creator:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateDeckRequest:
+      type: object
+      required: [name, creator]
+      properties:
+        name:
+          type: string
+        creator:
+          type: string
+
+    UpdateDeckRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        creator:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCollectionRequest:
+      type: object
+      required: [name, creator]
+      properties:
+        name:
+          type: string
+        creator:
+          type: string
+
+    UpdateCollectionRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    StudyEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        collection_id:
+          type: string
+        card_id:
+          type: string
+        user_id:
+          type: string
+        event_type:
+          type: string
+        quality:
+          type: integer
+        response_time_ns:
+          type: integer
+          format: int64
+        previous_deck_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreateStudyEventRequest:
+      type: object
+      required: [collection_id, card_id, user_id, event_type]
+      properties:
+        collection_id:
+          type: string
+        card_id:
+          type: string
+        user_id:
+          type: string
+        event_type:
+          type: string
+        quality:
+          type: integer
+        response_time_ms:
+          type: integer
+          format: int64
+        previous_deck_id:
+          type: string
+
+    NextCardsResponse:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardRecommendation'
+
+    CardRecommendation:
+      type: object
+      properties:
+        card_id:
+          type: string
+        final_score:
+          type: number
+          format: double
+        next_review_at:
+          type: string
+          format: date-time
