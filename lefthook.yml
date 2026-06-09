@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: false
+  commands:
+    fmt:
+      run: scripts/lint.sh bin fmt
+    fix:
+      run: scripts/lint.sh bin run --fix
+
+pre-push:
+  commands:
+    build:
+      run: go build ./...
+    test:
+      run: go test -race ./...
+    lint:
+      run: scripts/lint.sh bin run

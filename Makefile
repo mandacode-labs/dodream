@@ -1,55 +1,23 @@
-# Tools
 LOCALBIN ?= $(shell pwd)/bin
-$(LOCALBIN):
-	mkdir -p "$(LOCALBIN)"
-
-GOLANGCI_LINT_VERSION ?= v2.12.2
-GOLANGCI_LINT_VER = $(GOLANGCI_LINT_VERSION:v%=%)
-GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
-
-.PHONY: golangci-lint
-golangci-lint: $(LOCALBIN) ## Download golangci-lint locally if necessary.
-	@if command -v golangci-lint >/dev/null 2>&1; then \
-		SYSTEM_VER=$$(golangci-lint version --format=short 2>/dev/null || echo "unknown"); \
-		if [ "$$SYSTEM_VER" = "$(GOLANGCI_LINT_VERSION)" ]; then \
-			echo "Using system golangci-lint $(GOLANGCI_LINT_VERSION)"; \
-			exit 0; \
-		fi; \
-	fi; \
-	if [ ! -f "$(GOLANGCI_LINT)" ]; then \
-		echo "Downloading golangci-lint $(GOLANGCI_LINT_VERSION)..."; \
-		curl -sSfL "https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/golangci-lint-$(GOLANGCI_LINT_VER)-linux-amd64.tar.gz" -o /tmp/golangci-lint.tar.gz && \
-		tar xzf /tmp/golangci-lint.tar.gz -C /tmp/ && \
-		mv "/tmp/golangci-lint-$(GOLANGCI_LINT_VER)-linux-amd64/golangci-lint" "$(GOLANGCI_LINT)" && \
-		rm -f /tmp/golangci-lint.tar.gz; \
-	fi
-
-define GOLANGCI_LINT_CMD
-$(shell if command -v golangci-lint >/dev/null 2>&1 && [ "$$(golangci-lint version --format=short 2>/dev/null)" = "$(GOLANGCI_LINT_VERSION)" ]; then echo golangci-lint; else echo $(GOLANGCI_LINT); fi)
-endef
 
 # Linting
 .PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter
-	$(GOLANGCI_LINT_CMD) run
+lint: ## Run golangci-lint linter
+	scripts/lint.sh $(LOCALBIN)
 
 .PHONY: fmt
-fmt: golangci-lint ## Run go fmt and fix lint issues
-	$(GOLANGCI_LINT_CMD) fmt
-	$(GOLANGCI_LINT_CMD) run --fix
+fmt: ## Run go fmt and fix lint issues
+	scripts/lint.sh $(LOCALBIN) fmt
+	scripts/lint.sh $(LOCALBIN) run --fix
 
 # Code Generation
 .PHONY: ent-gen
 ent-gen: ## Generate ent code
 	go generate ./ent
 
-.PHONY: proto-tools
-proto-tools: ## Install protobuf code generation tools
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
 .PHONY: proto-gen
-proto-gen: proto-tools ## Generate protobuf code with buf
+proto-gen: ## Generate protobuf code with buf
+	scripts/install-proto-tools.sh
 	rm -rf pkg/proto/dodream
 	PATH="$(shell go env GOPATH)/bin:$(PATH)" buf generate
 
@@ -71,8 +39,7 @@ test: ## Run unit tests only (excludes integration tests)
 	go test -v -race -coverprofile=cover.out $$(go list ./... | grep -v /test)
 
 .PHONY: test-unit
-test-unit: ## Run unit tests only (alias for test)
-	$(MAKE) test
+test-unit: test ## Run unit tests only (alias for test)
 
 .PHONY: test-integration
 test-integration: ## Run integration tests with Docker
@@ -99,6 +66,15 @@ docker-build: ## Build Docker image locally
 docker-run: ## Run Docker container locally
 	docker run --rm -p 8080:8080 dodream:latest
 
+# Hooks
+.PHONY: install-hooks
+install-hooks: ## Install lefthook git hooks
+	~/go/bin/lefthook install
+
+.PHONY: run-hooks
+run-hooks: ## Run all lefthook hooks for testing
+	~/go/bin/lefthook run pre-commit && ~/go/bin/lefthook run pre-push
+
 # All-in-one
 .PHONY: all
 all: fmt lint test build ## Format, lint, test and build
@@ -116,3 +92,5 @@ tidy: ## Tidy go modules
 .PHONY: help
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+.DEFAULT_GOAL := help
