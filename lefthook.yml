@@ -2,9 +2,9 @@ pre-commit:
   parallel: false
   commands:
     fmt:
-      run: scripts/lint.sh bin fmt
+      run: scripts/lint.sh fmt
     fix:
-      run: scripts/lint.sh bin run --fix
+      run: scripts/lint.sh run --fix
 
 pre-push:
   commands:
@@ -13,4 +13,4 @@ pre-push:
     test:
       run: go test -race ./...
     lint:
-      run: scripts/lint.sh bin run
+      run: scripts/lint.sh run
