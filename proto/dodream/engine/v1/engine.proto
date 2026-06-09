@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package dodream.engine.v1;
 
-option go_package = "github.com/mandacode-labs/dodream/pkg/proto/engine/v1";
+option go_package = "github.com/mandacode-labs/dodream/pkg/proto/dodream/engine/v1";
 
 service EngineService {
   rpc GetCardState(GetCardStateRequest) returns (CardStateResponse);

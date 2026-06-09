@@ -2,5 +2,7 @@ version: v1
 plugins:
   - name: go
     out: pkg/proto
+    opt: module=github.com/mandacode-labs/dodream/pkg/proto
   - name: go-grpc
     out: pkg/proto
+    opt: module=github.com/mandacode-labs/dodream/pkg/proto

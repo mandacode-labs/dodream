@@ -3,12 +3,12 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
-GOLANGCI_LINT_VERSION ?= v2.11.4
+GOLANGCI_LINT_VERSION ?= v2.12.2
+GOLANGCI_LINT_VER = $(GOLANGCI_LINT_VERSION:v%=%)
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 
-# Use system golangci-lint if available and version matches, otherwise download
 .PHONY: golangci-lint
-golangci-lint: ## Download golangci-lint locally if necessary.
+golangci-lint: $(LOCALBIN) ## Download golangci-lint locally if necessary.
 	@if command -v golangci-lint >/dev/null 2>&1; then \
 		SYSTEM_VER=$$(golangci-lint version --format=short 2>/dev/null || echo "unknown"); \
 		if [ "$$SYSTEM_VER" = "$(GOLANGCI_LINT_VERSION)" ]; then \
@@ -18,8 +18,10 @@ golangci-lint: ## Download golangci-lint locally if necessary.
 	fi; \
 	if [ ! -f "$(GOLANGCI_LINT)" ]; then \
 		echo "Downloading golangci-lint $(GOLANGCI_LINT_VERSION)..."; \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_VERSION); \
-		mv "$(LOCALBIN)/golangci-lint" "$(GOLANGCI_LINT)"; \
+		curl -sSfL "https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/golangci-lint-$(GOLANGCI_LINT_VER)-linux-amd64.tar.gz" -o /tmp/golangci-lint.tar.gz && \
+		tar xzf /tmp/golangci-lint.tar.gz -C /tmp/ && \
+		mv "/tmp/golangci-lint-$(GOLANGCI_LINT_VER)-linux-amd64/golangci-lint" "$(GOLANGCI_LINT)" && \
+		rm -f /tmp/golangci-lint.tar.gz; \
 	fi
 
 define GOLANGCI_LINT_CMD
@@ -41,14 +43,15 @@ fmt: golangci-lint ## Run go fmt and fix lint issues
 ent-gen: ## Generate ent code
 	go generate ./ent
 
+.PHONY: proto-tools
+proto-tools: ## Install protobuf code generation tools
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
 .PHONY: proto-gen
-proto-gen: ## Generate protobuf code
+proto-gen: proto-tools ## Generate protobuf code with buf
 	rm -rf pkg/proto/dodream
-	mkdir -p pkg/proto/dodream/engine/v1
-	protoc --proto_path=proto \
-		--go_out=pkg/proto --go_opt=paths=source_relative \
-		--go-grpc_out=pkg/proto --go-grpc_opt=paths=source_relative \
-		dodream/engine/v1/engine.proto
+	PATH="$(shell go env GOPATH)/bin:$(PATH)" buf generate
 
 .PHONY: ogen-gen
 ogen-gen: ## Generate OpenAPI code with ogen
